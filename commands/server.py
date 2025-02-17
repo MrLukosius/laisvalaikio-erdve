@@ -3,8 +3,8 @@ from discord.ext import commands
 import a2s  # Atsiųsti serverio duomenis
 
 # CS 1.6 serverio adresas ir portas
-SERVER_IP = "45.81.254.160"
-SERVER_PORT = 27015  # Pakeisk į savo serverio portą
+SERVER_IP = "SERVERIO IP"
+SERVER_PORT = "SERVERIO PORT"  # Pakeisk į savo serverio portą
 
 class Server(commands.Cog):
     def __init__(self, bot):
