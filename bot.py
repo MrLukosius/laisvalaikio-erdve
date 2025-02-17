@@ -29,6 +29,6 @@ async def on_ready():
 async def main():
     async with bot:
         await load_extensions()
-        await bot.start("NzAzMTMyODM1NjY1NDEyMTI4.GXVUQj.nObGuUS00AFoLaLJruH8uL0dcZ1JHtmlZ3_PO0")
+        await bot.start("TAVO BOT_TOKENAS")
 
 asyncio.run(main())
