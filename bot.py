@@ -1,14 +1,13 @@
 import discord
 from discord.ext import commands
+import asyncio
 import os
 from dotenv import load_dotenv
 
-# Užkrauk aplinkos kintamuosius (jei naudojate .env failą)
+# Užkrauname .env failą (jei naudojamas)
 load_dotenv()
 
 intents = discord.Intents.default()
-intents.messages = True
-intents.guilds = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -21,6 +20,11 @@ async def on_ready():
     for command in bot.commands:
         print(f"Užregistruota komanda: {command.name}")
 
+@bot.event
+async def on_ready():
+    print(f"✅ Prisijungta kaip {bot.user}")
+    await load_extensions()  # UŽKRAUNAME KOMANDAS!
+
 async def load_extensions():
     for filename in os.listdir("./commands"):
         if filename.endswith(".py"):
@@ -30,5 +34,10 @@ async def load_extensions():
             except Exception as e:
                 print(f"⚠️ Klaida įkeliant {filename}: {e}")
 
-# Šalinti asyncio.run(), nes bot.run() tai padarys už jus.
-bot.run(os.getenv("DISCORD_TOKEN"))
+async def main():
+    async with bot:
+        await load_extensions()
+        await bot.start(os.getenv("DISCORD_TOKEN"))
+
+# Startuojame bot'ą
+asyncio.run(main())

@@ -1,24 +1,25 @@
-import a2s
-from bot import bot  # Importuok 'bot' iš pagrindinio bot.py failo
+import discord
+from discord.ext import commands
+import a2s  # Patikrink, ar modulis įdiegtas!
 
-@bot.command()
-async def server(ctx):
-    try:
-        # Serverio IP ir portas
-        ip = '45.81.254.160'
-        port = 27015  # Paprastai Counter Strike 1.6 naudojamas šis portas
+class ServerInfo(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
 
-        # Sujungimas su serveriu
-        server = a2s.ServerQuerier((ip, port))
+    @commands.command()
+    async def server(self, ctx):
+        try:
+            ip = '45.81.254.160'
+            port = 27015  # CS 1.6 portas
+            server = a2s.info((ip, port))  # NAUDOJAME `a2s.info()`
+            
+            await ctx.send(f"Serverio informacija: \n"
+                           f"Žaidėjų skaičius: {server.player_count}/{server.max_players}\n"
+                           f"Žemėlapis: {server.map_name}\n"
+                           f"Serverio pavadinimas: {server.server_name}")
+        except Exception as e:
+            await ctx.send("⚠️ Nepavyko gauti serverio informacijos!")
+            print(e)
 
-        # Gauti serverio informaciją
-        info = server.info()  # Šis metodas yra sinchroninis, todėl nenaudojame await
-
-        # Pateikite serverio informaciją
-        await ctx.send(f"Serverio informacija: \n"
-                       f"Žaidėjų skaičius: {info['players']}/{info['max_players']}\n"
-                       f"Žemėlapis: {info['map']}\n"
-                       f"Serverio pavadinimas: {info['server_name']}")
-    except Exception as e:
-        await ctx.send("⚠️ Nepavyko gauti serverio informacijos!")
-        print(e)
+async def setup(bot):
+    await bot.add_cog(ServerInfo(bot))
