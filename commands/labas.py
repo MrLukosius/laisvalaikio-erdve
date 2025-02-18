@@ -10,5 +10,5 @@ class Labas(commands.Cog):
     async def labas(self, ctx):
         await ctx.send("Labas! :)")
 
-async def setup(bot):
-    await bot.add_cog(Labas(bot))  # BŪTINAI su await!
+def setup(bot):
+    bot.add_cog(Labas(bot))  # Čia nėra await, nes add_cog() nėra asinchroninis

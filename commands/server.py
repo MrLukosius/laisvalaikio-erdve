@@ -1,5 +1,5 @@
 import a2s
-from bot import bot #boto importas is bot.py
+from bot import bot  # Importuok 'bot' iš pagrindinio bot.py failo
 
 @bot.command()
 async def server(ctx):
@@ -12,7 +12,7 @@ async def server(ctx):
         server = a2s.ServerQuerier((ip, port))
 
         # Gauti serverio informaciją
-        info = server.info()
+        info = server.info()  # Šis metodas yra sinchroninis, todėl nenaudojame await
 
         # Pateikite serverio informaciją
         await ctx.send(f"Serverio informacija: \n"
