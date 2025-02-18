@@ -5,25 +5,17 @@ class Serveris(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="serveris")
+    @commands.command()
     async def serveris(self, ctx):
-        guild = ctx.guild  # Gauname serverio informaciją
-        
-        # Paimame duomenis
-        server_name = guild.name
-        server_owner = guild.owner
-        member_count = guild.member_count
-        created_at = guild.created_at.strftime("%Y-%m-%d")
-        server_description = guild.description if guild.description else "Laisvalaikio Erdvė - vieta kurioje kiekvienas jaučiasi kaip namie!"
+        guild = ctx.guild  # Gauname serverio objektą
+        owner = guild.owner  # Gauname serverio savininką
 
-        # Sukuriame įterptą (embed) pranešimą
-        embed = discord.Embed(title=f"📢 {server_name} informacija", color=discord.Color.blue())
-        embed.add_field(name="👑 Savininkas", value=server_owner, inline=True)
-        embed.add_field(name="👥 Narių skaičius", value=member_count, inline=True)
-        embed.add_field(name="📆 Sukurta", value=created_at, inline=True)
-        embed.add_field(name="📜 Aprašymas", value=server_description, inline=False)
-        embed.set_thumbnail(url=guild.icon.url if guild.icon else None)  # Serverio ikona, jei yra
-        
+        embed = discord.Embed(title=f"📜 {guild.name} informacija", color=discord.Color.blue())
+        embed.add_field(name="👑 Savininkas", value=owner.mention if owner else "Justelis", inline=False)
+        embed.add_field(name="👥 Narių skaičius", value=guild.member_count, inline=False)
+        embed.add_field(name="📅 Serveris sukurtas", value=guild.created_at.strftime("%Y-%m-%d"), inline=False)
+        embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+
         await ctx.send(embed=embed)
 
 async def setup(bot):
