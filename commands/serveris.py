@@ -14,7 +14,7 @@ class Serveris(commands.Cog):
         server_owner = guild.owner
         member_count = guild.member_count
         created_at = guild.created_at.strftime("%Y-%m-%d")
-        server_description = guild.description if guild.description else "Nėra aprašymo"
+        server_description = guild.description if guild.description else "Laisvalaikio Erdvė - vieta kurioje kiekvienas jaučiasi kaip namie!"
 
         # Sukuriame įterptą (embed) pranešimą
         embed = discord.Embed(title=f"📢 {server_name} informacija", color=discord.Color.blue())
