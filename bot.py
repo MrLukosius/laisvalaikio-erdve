@@ -18,6 +18,8 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.listening, name="Prižiūrių tvarką👀")
     await bot.change_presence(status=discord.Status.online, activity=activity)
     print(f"Prisijungta kaip {bot.user.name}")
+    for command in bot.commands:
+        print(f"Užregistruota komanda: {command.name}")
 
 async def load_extensions():
     for filename in os.listdir("./commands"):
