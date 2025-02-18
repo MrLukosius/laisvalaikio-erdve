@@ -2,11 +2,15 @@ import discord
 import os
 import asyncio
 from discord.ext import commands
+from dotenv import load_dotenv
+
+# Užkrauk aplinkos kintamuosius (jei naudojate .env failą)
+load_dotenv()
 
 intents = discord.Intents.default()
 intents.messages = True  # Užtikrina, kad botui leidžiama skaityti žinutes
-intents.guilds = True # Leidzia matyti serverius
-intents.message_content = True # Leidzia matyti pranesimu turini (butina komandoms!)
+intents.guilds = True # Leidžia matyti serverius
+intents.message_content = True # Leidžia matyti pranešimų turinį (būtina komandoms!)
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -29,6 +33,11 @@ async def on_ready():
 async def main():
     async with bot:
         await load_extensions()
-        await bot.start("DISCORD_TOKEN")
+        # Naudok DISCORD_TOKEN iš aplinkos kintamųjų
+        token = os.getenv("DISCORD_TOKEN")
+        if token is None:
+            print("❌ Nustatytas neteisingas tokenas! Patikrink savo Railway aplinkos kintamuosius.")
+            return
+        await bot.start(token)
 
 asyncio.run(main())
