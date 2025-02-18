@@ -25,6 +25,8 @@ async def load_extensions():
 
 @bot.event
 async def on_ready():
+    activity = discord.Activity(type=discord.ActivityType.listening, name="Prižiūriu Laisvalaikio Erdvė serverį:P")
+    await bot.change_presence(status=discord.Status.online, activity=activity)
     print(f"✅ Prisijungta kaip: {bot.user}")
     print("🚀 Botas sėkmingai paleistas!")
     for command in bot.commands:
