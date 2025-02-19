@@ -13,17 +13,17 @@ class Bradega(commands.Cog):
             port = 27015
             server_address = (ip, port)
 
-            # Paleidžiame a2s.info asynchroniškai, kad išvengtume event loop problemų
+            # Kadangi a2s yra sinchroninė biblioteka, naudojame run_in_executor
             loop = asyncio.get_running_loop()
             info = await loop.run_in_executor(None, lambda: a2s.info(server_address))
 
-            await ctx.send(f"🎮 **Bradega Serverio informacija:**\n"
+            await ctx.send(f"🎮 **Bradega.lt Serverio informacija:**\n"
                            f"🔹 Žaidėjų skaičius: {info.player_count}/{info.max_players}\n"
                            f"🌍 Žemėlapis: {info.map_name}\n"
                            f"🏷️ Serverio pavadinimas: {info.server_name}")
         except Exception as e:
             await ctx.send("⚠️ Nepavyko gauti Bradega serverio informacijos!")
-            print(e)
+            print(f"Klaida: {e}")
 
 async def setup(bot):
     await bot.add_cog(Bradega(bot))
