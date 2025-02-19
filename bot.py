@@ -56,6 +56,10 @@ async def main():
             print("⚠️ Komanda #komandos nebuvo užkrauta")
         else:
             print("✅ Komanda #komandos sėkmingai užkrauta!")
+        if "commands.nario-info" not in bot.extensions:
+            print("⚠️ Komanda #nario-info nebuvo užkrauta")
+        else:
+            print("✅ Komanda #nario-info sėkmingai užkrauta!")
 
         await bot.start(os.getenv("DISCORD_TOKEN"))
 
