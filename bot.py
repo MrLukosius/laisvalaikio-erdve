@@ -68,6 +68,10 @@ async def main():
             print("⚠️ Tiktok pranesejas nebuvo užkrauta")
         else:
             print("✅ Tiktok pranesejas sėkmingai užkrauta!")
+        if "commands.automod" not in bot.extensions:
+            print("⚠️ Auto-moderavimas nebuvo užkrauta")
+        else:
+            print("✅ Auto-moderavimas sėkmingai užkrauta!")
         
 
         
