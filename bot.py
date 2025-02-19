@@ -14,7 +14,7 @@ bot = commands.Bot(command_prefix="#", intents=intents)
 
 @bot.event
 async def on_ready():
-    activity = discord.Activity(type=discord.ActivityType.listening, name="Prižiūrių tvarką👀")
+    activity = discord.Activity(type=discord.ActivityType.listening, name="Prižiūrių tvarką👀 Prefixas: # Komandų sąrašas: !komandos")
     await bot.change_presence(status=discord.Status.online, activity=activity)
     print(f"✅ Prisijungta kaip {bot.user.name}")
 
@@ -40,18 +40,22 @@ async def main():
         
         # Patikriname, ar `serveris` ir `bradega` tikrai užkrauti
         if "commands.serveris" not in bot.extensions:
-            print("⚠️ Komanda `!serveris` nebuvo užkrautas!")
+            print("⚠️ Komanda `#serveris` nebuvo užkrautas!")
         else:
-            print("✅ Komanda `!serveris` sėkmingai užkrautas!")
+            print("✅ Komanda `#serveris` sėkmingai užkrautas!")
 
         if "commands.bradega" not in bot.extensions:
-            print("⚠️ Komanda `!bradega` nebuvo užkrauta!")
+            print("⚠️ Komanda `#bradega` nebuvo užkrauta!")
         else:
-            print("✅ Komanda `!bradega` sėkmingai užkrauta!")
+            print("✅ Komanda `#bradega` sėkmingai užkrauta!")
         if "commands.moderation" not in bot.extensions:
             print("⚠️ Moderavimo komandos nebuvo užkrautos")
         else:
             print("✅ Moderavimo komandos sėkmingai užkrautos!")
+        if "commands.komandos" not in bot.extensions:
+            print("⚠️ Komanda #komandos nebuvo užkrauta")
+        else:
+            print("✅ Komanda #komandos sėkmingai užkrauta!")
 
         await bot.start(os.getenv("DISCORD_TOKEN"))
 
