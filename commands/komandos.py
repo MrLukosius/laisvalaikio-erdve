@@ -19,15 +19,16 @@ class Komandos(commands.Cog):
         **#serveris** – Parodo serverio informaciją
         **#bradega** – Bradega.lt serverio informacija (tvarkoma)
         **labas, sveikas, sveiki** – Botas pasisveikins su jumis
+        **#nario-info arba #nario-info @vnarys** – parodo informaciją apie jus ar apie kitą narį
         """
         embed.add_field(name="✅ Pagrindinės komandos", value=pagrindines, inline=False)
 
         # Administracijos komandos (tik su leidimais)
         administracija = """
-        **#kick @vartotojas [priežastis]** – Išspiria vartotoją iš serverio
-        **#ban @vartotojas [priežastis]** – Užblokuoja vartotoją
-        **#mute @vartotojas [trukmė]** – Nutildo vartotoją (uždeda rolę)
-        **#unmute @vartotojas** – Nuima mute nuo vartotojo
+        **#kick @narys [priežastis]** – Išspiria vartotoją iš serverio
+        **#ban @narys [priežastis]** – Užblokuoja vartotoją
+        **#mute @narys [trukmė]** – Nutildo vartotoją (uždeda rolę)
+        **#unmute @narys** – Nuima mute nuo vartotojo
         """
         embed.add_field(name="🛠 Administracijos komandos", value=administracija, inline=False)
 
