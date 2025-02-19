@@ -14,7 +14,7 @@ class NarioInfo(commands.Cog):
         embed = discord.Embed(title=f"Nario informacija: {member.name}", color=discord.Color.blue())
         embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
         
-        embed.add_field(name="🔹 Discord tag:", value=f"{member}", inline=False)
+        embed.add_field(name="🔹 Discord vardas:", value=f"{member}", inline=False)
         embed.add_field(name="🆔 ID:", value=f"{member.id}", inline=False)
         embed.add_field(name="📅 Sukurta paskyra:", value=f"{member.created_at.strftime('%Y-%m-%d %H:%M')}", inline=False)
         embed.add_field(name="📌 Prisijungė į serverį:", value=f"{member.joined_at.strftime('%Y-%m-%d %H:%M')}", inline=False)
