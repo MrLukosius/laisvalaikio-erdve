@@ -60,6 +60,17 @@ async def main():
             print("⚠️ Komanda #nario-info nebuvo užkrauta")
         else:
             print("✅ Komanda #nario-info sėkmingai užkrauta!")
+        if "commands.kick_notifier" not in bot.extensions:
+            print("⚠️ Kick pranesejas nebuvo užkrauta")
+        else:
+            print("✅ Kick pranesejas sėkmingai užkrauta!")
+        if "commands.tiktok_notifier" not in bot.extensions:
+            print("⚠️ Tiktok pranesejas nebuvo užkrauta")
+        else:
+            print("✅ Tiktok pranesejas sėkmingai užkrauta!")
+        
+
+        
 
         await bot.start(os.getenv("DISCORD_TOKEN"))
 
