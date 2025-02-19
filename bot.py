@@ -40,14 +40,18 @@ async def main():
         
         # Patikriname, ar `serveris` ir `bradega` tikrai užkrauti
         if "commands.serveris" not in bot.extensions:
-            print("⚠️ Modulis `serveris` nebuvo užkrautas!")
+            print("⚠️ Komanda `!serveris` nebuvo užkrautas!")
         else:
-            print("✅ Modulis `serveris` sėkmingai užkrautas!")
+            print("✅ Komanda `!serveris` sėkmingai užkrautas!")
 
         if "commands.bradega" not in bot.extensions:
-            print("⚠️ Modulis `bradega` nebuvo užkrautas!")
+            print("⚠️ Komanda `!bradega` nebuvo užkrauta!")
         else:
-            print("✅ Modulis `bradega` sėkmingai užkrautas!")
+            print("✅ Komanda `!bradega` sėkmingai užkrauta!")
+        if "commands.moderation" not in bot.extensions:
+            print("⚠️ Moderavimo komandos nebuvo užkrautos")
+        else:
+            print("✅ Moderavimo komandos sėkmingai užkrautos!")
 
         await bot.start(os.getenv("DISCORD_TOKEN"))
 
