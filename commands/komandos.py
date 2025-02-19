@@ -15,6 +15,7 @@ class Komandos(commands.Cog):
 
         # Pagrindinės komandos (visi gali naudoti)
         pagrindines = """
+        **#komandos** – Boto komandų sąrašas
         **#serveris** – Parodo serverio informaciją
         **#bradega** – Bradega.lt serverio informacija (tvarkoma)
         **labas, sveikas, sveiki** – Botas pasisveikins su jumis
