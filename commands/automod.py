@@ -60,6 +60,7 @@ class AutoMod(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        print(f"Gauta zinuciu: {message.content}")
         if message.author.bot:
             return
         if any(role.id in ADMIN_ROLES for role in message.author.roles):
