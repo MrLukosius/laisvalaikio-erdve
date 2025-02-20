@@ -1,3 +1,4 @@
+from datetime import timedelta
 import discord
 from discord.ext import commands
 import asyncio
@@ -26,6 +27,7 @@ class AutoMod(commands.Cog):
         self.muted_users = {}
 
     async def send_log(self, ctx, action, member, reason):
+        """Siunčia log'ą į log kanalą"""
         log_channel = self.bot.get_channel(LOG_CHANNEL_ID)
         if log_channel:
             embed = discord.Embed(title=f"📌 {action}", color=discord.Color.red())
@@ -42,6 +44,8 @@ class AutoMod(commands.Cog):
         if not mute_role:
             return
 
+        # Pridedame "timeout" Discord platformoje
+        await message.author.timeout(duration=discord.utils.utcnow() + timedelta(minutes=duration), reason=reason)
         await message.author.add_roles(mute_role, reason=reason)
         await message.channel.send(f"🔇 {message.author.mention}, gavai mute {duration} minutėms! Priežastis: **{reason}**")
         await self.send_log(message, "🔇 Narys užtildytas", message.author, reason)
@@ -65,22 +69,22 @@ class AutoMod(commands.Cog):
         should_delete = False
         reason = None
 
-        # Blogi žodžiai
+        # Tikriname blogus žodžius
         if any(word in content_lower for word in BAD_WORDS):
             reason = "Keiksmažodžiai"
             should_delete = True
         elif any(word in content_lower for word in RACIST_WORDS):
             reason = "Rasistiniai žodžiai"
             should_delete = True
-            await self.mute_member(message, reason, 15)
+            await self.mute_member(message, reason, 15)  # 15min mute
 
-        # Invite linkai
+        # Tikriname invite linkus
         elif any(invite in content_lower for invite in INVITE_LINKS):
             reason = "Discord kvietimo linkas"
             should_delete = True
-            await self.mute_member(message, reason, 5)
+            await self.mute_member(message, reason, 5)  # 5min mute
 
-        # Neleistini linkai
+        # Tikriname neleistinus linkus
         elif any(link in content_lower for link in BANNED_LINKS):
             reason = "Draudžiamas linkas"
             should_delete = True
@@ -98,8 +102,8 @@ class AutoMod(commands.Cog):
         if len(self.spam_users[author_id]) >= SPAM_LIMIT:
             reason = "Spam"
             should_delete = True
-            await self.mute_member(message, reason, 5)
-            self.spam_users[author_id] = []
+            await self.mute_member(message, reason, 5)  # 5min mute
+            self.spam_users[author_id] = []  # Reset spam count
 
         # Jei reikia, triname žinutę ir siunčiame įspėjimą
         if should_delete:
