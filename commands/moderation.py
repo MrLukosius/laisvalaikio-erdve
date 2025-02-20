@@ -12,15 +12,17 @@ class Moderation(commands.Cog):
             return any(role.id in ctx.author.roles for role in ctx.author.roles)
         return commands.check(predicate)
 
+    @commands.has_permissions(kick_members=True)
     @commands.command()
     @is_admin()
-    async def kick(self, ctx, member: discord.Member, *, reason="Nepateikta"):
+    async def kick(self, ctx, member: discord.Member, *, reason="Priežastis nenurodyta"):
         if any(role.id in self.admin_roles for role in member.roles):
             await ctx.send("⛔ Administracijos narių negalima išmesti!")
             return
         await member.kick(reason=reason)
         await ctx.send(f"✅ {member.mention} buvo išmestas. Priežastis: **{reason}**")
 
+    @commands.has_permissions(ban_members=True)
     @commands.command()
     @is_admin()
     async def ban(self, ctx, member: discord.Member, *, reason="Nepateikta"):
@@ -30,6 +32,7 @@ class Moderation(commands.Cog):
         await member.ban(reason=reason)
         await ctx.send(f"✅ {member.mention} buvo užblokuotas. Priežastis: **{reason}**")
 
+    @commands.has_permissions(mute_members=True)
     @commands.command()
     @is_admin()
     async def mute(self, ctx, member: discord.Member, mute_time: int, *, reason="Nepateikta"):
