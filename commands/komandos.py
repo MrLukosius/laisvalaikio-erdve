@@ -20,6 +20,7 @@ class Komandos(commands.Cog):
         **#bradega** – Bradega.lt serverio informacija (tvarkoma)
         **labas, sveikas, sveiki** – Botas pasisveikins su jumis
         **#nario-info arba #nario-info @vnarys** – parodo informaciją apie jus ar apie kitą narį
+        **#play, #pause, #skip - muzikos komandos, kurios leidžia klausytis muzikos balso kanale
         """
         embed.add_field(name="✅ Pagrindinės komandos", value=pagrindines, inline=False)
 
@@ -29,6 +30,7 @@ class Komandos(commands.Cog):
         **#ban @narys [priežastis]** – Užblokuoja vartotoją
         **#mute @narys [trukmė]** – Nutildo vartotoją (uždeda rolę)
         **#unmute @narys** – Nuima mute nuo vartotojo
+        **#isvalyti [kiekis] – Išvalo žinutes pasirinktame kanale
         """
         embed.add_field(name="🛠 Administracijos komandos", value=administracija, inline=False)
 
