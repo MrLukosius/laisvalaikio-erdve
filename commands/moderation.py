@@ -22,6 +22,11 @@ class Moderation(commands.Cog):
         await member.kick(reason=reason)
         await ctx.send(f"✅ {member.mention} buvo išmestas. Priežastis: **{reason}**")
 
+
+    @kick.error
+    async def kick_error(self, ctx, error):
+        await ctx.send(f"⚠️ Klaida: {error}")
+
     @commands.has_permissions(ban_members=True)
     @commands.command()
     @is_admin()
@@ -31,6 +36,11 @@ class Moderation(commands.Cog):
             return
         await member.ban(reason=reason)
         await ctx.send(f"✅ {member.mention} buvo užblokuotas. Priežastis: **{reason}**")
+
+
+    @ban.error
+    async def ban_error(self, ctx, error):
+        await ctx.send(f"⚠️ Klaida: {error}")
 
     @commands.has_permissions(mute_members=True)
     @commands.command()
@@ -46,6 +56,13 @@ class Moderation(commands.Cog):
         await asyncio.sleep(mute_time * 60)
         await member.remove_roles(mute_role)
         await ctx.send(f"✅ {member.mention}, tavo mute baigėsi.")
+
+    
+    @mute.error
+    async def mute_error(self, ctx, error):
+        await ctx.send(f"⚠️ Klaida: {error}")
+
+        
 
 async def setup(bot):
     await bot.add_cog(Moderation(bot))
