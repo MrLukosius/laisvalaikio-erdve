@@ -73,14 +73,7 @@ async def main():
             print("⚠️ Auto-moderavimas nebuvo užkrauta")
         else:
             print("✅ Auto-moderavimas sėkmingai užkrauta!")
-        if "commands.isvalyti" not in bot.extensions:
-            print("⚠️ Isvalymas nebuvo užkrauta")
-        else:
-            print("✅ Isvalymas sėkmingai užkrauta!")
-        if "commands.muzika" not in bot.extensions:
-            print("⚠️ Muzika nebuvo užkrauta")
-        else:
-            print("✅ Muzika sėkmingai užkrauta!")
+        
         
 
         
