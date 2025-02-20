@@ -24,6 +24,7 @@ class AutoMod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.spam_users = {}
+        self.manually_unmuted = set()  # Nariai, kurie buvo rankiniu būdu atmutinti
 
     async def send_log(self, ctx, action, member, reason):
         """Siunčia log'ą į log kanalą"""
@@ -51,10 +52,32 @@ class AutoMod(commands.Cog):
         await self.send_log(message, "🔇 Narys užtildytas", message.author, reason)
 
         await asyncio.sleep(duration * 60)
-        
+
+        # Jei narys buvo rankiniu būdu atmutintas, nebeatmutinam automatiškai
+        if message.author.id in self.manually_unmuted:
+            self.manually_unmuted.remove(message.author.id)
+            return
+
         if mute_role in message.author.roles:
             await message.author.remove_roles(mute_role)
             await self.send_log(message, "🔊 Narys atmutintas", message.author, "Baigėsi mute laikas")
+
+    @commands.command(name="unmute")
+    @commands.has_permissions(manage_roles=True)
+    async def unmute(self, ctx, member: discord.Member):
+        """Rankiniu būdu atmutina narį ir neleidžia botui vėl jo automatiškai atmutinti"""
+        mute_role = discord.utils.get(ctx.guild.roles, id=MUTE_ROLE_ID)
+        if not mute_role:
+            await ctx.send("❌ Mute rolė nerasta!")
+            return
+
+        if mute_role in member.roles:
+            await member.remove_roles(mute_role)
+            self.manually_unmuted.add(member.id)  # Pažymime, kad narys buvo rankiniu būdu atmutintas
+            await ctx.send(f"🔊 {member.mention} buvo atmutintas rankiniu būdu.")
+            await self.send_log(ctx, "🔊 Narys atmutintas rankiniu būdu", member, "Naudota `#unmute` komanda")
+        else:
+            await ctx.send(f"❌ {member.mention} neturi mute rolės!")
 
     @commands.Cog.listener()
     async def on_message(self, message):
