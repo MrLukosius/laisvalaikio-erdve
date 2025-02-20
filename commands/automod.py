@@ -50,7 +50,7 @@ class AutoMod(commands.Cog):
         await message.author.add_roles(mute_role, reason=reason)
         self.muted_users.add(message.author.id)
 
-        await message.channel.send(f"🔇 {message.author.mention}, gavai mute! Priežastis: **{reason}**")
+        mute_message = await message.channel.send(f"🔇 {message.author.mention}, gavai mute! Priežastis: **{reason}**")
         await self.send_log("🔇 Narys užtildytas", message.author, reason)
 
         await asyncio.sleep(duration * 60)
@@ -76,13 +76,15 @@ class AutoMod(commands.Cog):
         elif any(word in content_lower for word in RACIST_WORDS):
             reason = "Rasistiniai žodžiai"
             should_delete = True
-            await self.mute_member(message, reason, 15)  
+            if message.author.id not in self.muted_users:
+                await self.mute_member(message, reason, 15)  
 
         # Tikriname invite linkus
         elif any(invite in content_lower for invite in INVITE_LINKS):
             reason = "Discord kvietimo linkas"
             should_delete = True
-            await self.mute_member(message, reason, 5)  
+            if message.author.id not in self.muted_users:
+                await self.mute_member(message, reason, 5)  
 
         # Tikriname neleistinus linkus
         elif any(link in content_lower for link in BANNED_LINKS) and not any(link in content_lower for link in ALLOWED_LINKS):
@@ -102,15 +104,20 @@ class AutoMod(commands.Cog):
         if len(self.spam_users[author_id]) >= SPAM_LIMIT:
             reason = "Spam"
             should_delete = True
-
-            if author_id not in self.muted_users:
-                await self.mute_member(message, reason, 5)  
-                self.spam_users[author_id] = []  
+            if author_id not in self.muted_users:  # Tik jei nėra mute
+                await self.mute_member(message, reason, 5)
+                self.spam_users[author_id] = []  # Reset spam count
 
         # Jei reikia, triname žinutę ir siunčiame įspėjimą, bet tik vieną kartą
         if should_delete:
             await message.delete()
-            await message.channel.send(f"⚠️ {message.author.mention}, tavo žinutė buvo ištrinta. Priežastis: **{reason}**", delete_after=5)
+            warning_message = f"⚠️ {message.author.mention}, tavo žinutė buvo ištrinta. Priežastis: **{reason}**"
+
+            async for msg in message.channel.history(limit=5):
+                if msg.content == warning_message and msg.author == self.bot.user:
+                    return  # Jei jau yra, naujo nesiunčiam
+
+            await message.channel.send(warning_message, delete_after=5)
 
 async def setup(bot):
     await bot.add_cog(AutoMod(bot))
