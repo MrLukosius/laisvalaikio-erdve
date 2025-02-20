@@ -1,4 +1,3 @@
-from datetime import timedelta
 import discord
 from discord.ext import commands
 import asyncio
@@ -13,12 +12,12 @@ ADMIN_ROLES = [
     1333731772285980703, 1333030957610963022, 1338599511324360704,
     1335641678031097997, 1334093147982008424, 1334093306669432833,
     1334535150310264953
-]  # Administracijos rolių ID
+]
 
-MUTE_ROLE_ID = 1333038923387113565  # Mute rolė
-LOG_CHANNEL_ID = 1333039387482525829  # Log kanalas
+MUTE_ROLE_ID = 1333038923387113565  # Mute rolės ID
+LOG_CHANNEL_ID = 1333039387482525829  # Log kanalo ID
 SPAM_LIMIT = 5
-SPAM_TIMEFRAME = 10
+SPAM_TIMEFRAME = 10  # Sekundėmis
 
 class AutoMod(commands.Cog):
     def __init__(self, bot):
@@ -26,7 +25,7 @@ class AutoMod(commands.Cog):
         self.spam_users = {}
         self.muted_users = {}
 
-    async def send_log(self, ctx, action, member, reason):
+    async def send_log(self, action, member, reason):
         """Siunčia log'ą į log kanalą"""
         log_channel = self.bot.get_channel(LOG_CHANNEL_ID)
         if log_channel:
@@ -36,57 +35,55 @@ class AutoMod(commands.Cog):
             await log_channel.send(embed=embed)
 
     async def mute_member(self, message, reason, duration):
-        """Skiria mute, jeigu narys nėra administracijos dalis"""
+        """Prideda mute rolę nariui"""
         if any(role.id in ADMIN_ROLES for role in message.author.roles):
-            return  # Administracijos nariams netaikome mute
+            return  # Administratorių netildome
 
         mute_role = discord.utils.get(message.guild.roles, id=MUTE_ROLE_ID)
         if not mute_role:
             return
 
-        # Pridedame "timeout" Discord platformoje
-        await message.author.timeout(duration=discord.utils.utcnow() + timedelta(minutes=duration), reason=reason)
-        await message.author.add_roles(mute_role, reason=reason)
-        await message.channel.send(f"🔇 {message.author.mention}, gavai mute {duration} minutėms! Priežastis: **{reason}**")
-        await self.send_log(message, "🔇 Narys užtildytas", message.author, reason)
+        if message.author.id in self.muted_users:
+            return  # Jei jau mute, nieko nedarom
 
-        self.muted_users[message.author.id] = True  # Pridedame nario ID į mute sąrašą
+        await message.author.add_roles(mute_role, reason=reason)
+        await message.channel.send(f"🔇 {message.author.mention}, gavai mute! Priežastis: **{reason}**")
+        await self.send_log("🔇 Narys užtildytas", message.author, reason)
+
+        self.muted_users[message.author.id] = True  
         await asyncio.sleep(duration * 60)
-        
+
         if self.muted_users.get(message.author.id):
             await message.author.remove_roles(mute_role)
-            await self.send_log(message, "🔊 Narys atmutintas", message.author, "Baigėsi mute laikas")
-            del self.muted_users[message.author.id]  # Išvalome iš sąrašo
+            await self.send_log("🔊 Narys atmutintas", message.author, "Baigėsi mute laikas")
+            del self.muted_users[message.author.id]  
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        print(f"Gauta zinuciu: {message.content}")
-        if message.author.bot:
-            return
-        if any(role.id in ADMIN_ROLES for role in message.author.roles):
-            return  # Jei narys turi administracijos rolę, netikriname jo žinučių
+        if message.author.bot or any(role.id in ADMIN_ROLES for role in message.author.roles):
+            return  
 
         content_lower = message.content.lower()
         should_delete = False
         reason = None
 
-        # Tikriname blogus žodžius
+        # Tikriname keiksmažodžius ir rasistinius žodžius
         if any(word in content_lower for word in BAD_WORDS):
             reason = "Keiksmažodžiai"
             should_delete = True
         elif any(word in content_lower for word in RACIST_WORDS):
             reason = "Rasistiniai žodžiai"
             should_delete = True
-            await self.mute_member(message, reason, 15)  # 15min mute
+            await self.mute_member(message, reason, 15)  
 
         # Tikriname invite linkus
         elif any(invite in content_lower for invite in INVITE_LINKS):
             reason = "Discord kvietimo linkas"
             should_delete = True
-            await self.mute_member(message, reason, 5)  # 5min mute
+            await self.mute_member(message, reason, 5)  
 
         # Tikriname neleistinus linkus
-        elif any(link in content_lower for link in BANNED_LINKS):
+        elif any(link in content_lower for link in BANNED_LINKS) and not any(link in content_lower for link in ALLOWED_LINKS):
             reason = "Draudžiamas linkas"
             should_delete = True
 
@@ -103,10 +100,10 @@ class AutoMod(commands.Cog):
         if len(self.spam_users[author_id]) >= SPAM_LIMIT:
             reason = "Spam"
             should_delete = True
-            await self.mute_member(message, reason, 5)  # 5min mute
-            self.spam_users[author_id] = []  # Reset spam count
+            await self.mute_member(message, reason, 5)  
+            self.spam_users[author_id] = []  
 
-        # Jei reikia, triname žinutę ir siunčiame įspėjimą
+        # Jei reikia, triname žinutę ir siunčiame įspėjimą, bet tik vieną kartą
         if should_delete:
             await message.delete()
             await message.channel.send(f"⚠️ {message.author.mention}, tavo žinutė buvo ištrinta. Priežastis: **{reason}**", delete_after=5)
