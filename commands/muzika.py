@@ -53,12 +53,7 @@ class Music(commands.Cog):
         else:
             await self.play_next(ctx)
 
-    async def play_next(self, ctx):
-        """Grojama kita daina iš eilės"""
-        if not self.song_queue[ctx.guild.id]:
-            await ctx.send("🎶 **Dainų eilė baigėsi. Botas palieka kanalą.**")
-            await ctx.voice_client.disconnect()
-            return
+    
 
         url, title = self.song_queue[ctx.guild.id].pop(0)
         self.current_song[ctx.guild.id] = title
