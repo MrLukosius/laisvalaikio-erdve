@@ -3,7 +3,7 @@ from discord.ext import commands
 import asyncio
 
 BAD_WORDS = ["blt", "blyat", "blet", "nahuj", "nx", "nahui", "krw", "kurva", "kurwa", "bybis", "bybys", "bybiai"]
-RACIST_WORDS = ["nigga", "Nigga", "niggeris", "nyggeris", "nygeris", "nigeriukas", "pedikas", "pydaras", "pyderas", "pidaras", "pideras"]
+RACIST_WORDS = ["nigga", "niggeris", "nyggeris", "nygeris", "nigeriukas", "pedikas", "pydaras", "pyderas", "pidaras", "pideras"]
 BANNED_LINKS = ["youtube.com", "tiktok.com", "instagram.com", "facebook.com"]
 ALLOWED_LINKS = ["tenor.com", "giphy.com", "ezgif.com", "bradega.lt", "discord.gg/laisvalaikioerdve", "imgur.com"]
 INVITE_LINKS = ["discord.gg/", "discord.com/invite/"]
@@ -23,7 +23,7 @@ class AutoMod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.spam_users = {}
-        self.muted_users = {}
+        self.muted_users = set()
 
     async def send_log(self, action, member, reason):
         """Siunčia log'ą į log kanalą"""
@@ -41,22 +41,24 @@ class AutoMod(commands.Cog):
 
         mute_role = discord.utils.get(message.guild.roles, id=MUTE_ROLE_ID)
         if not mute_role:
+            print("Mute role nerasta!")
             return
 
         if message.author.id in self.muted_users:
             return  # Jei jau mute, nieko nedarom
 
         await message.author.add_roles(mute_role, reason=reason)
+        self.muted_users.add(message.author.id)
+
         await message.channel.send(f"🔇 {message.author.mention}, gavai mute! Priežastis: **{reason}**")
         await self.send_log("🔇 Narys užtildytas", message.author, reason)
 
-        self.muted_users[message.author.id] = True  
         await asyncio.sleep(duration * 60)
 
-        if self.muted_users.get(message.author.id):
+        if message.author.id in self.muted_users:
             await message.author.remove_roles(mute_role)
             await self.send_log("🔊 Narys atmutintas", message.author, "Baigėsi mute laikas")
-            del self.muted_users[message.author.id]  
+            self.muted_users.remove(message.author.id)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -100,8 +102,10 @@ class AutoMod(commands.Cog):
         if len(self.spam_users[author_id]) >= SPAM_LIMIT:
             reason = "Spam"
             should_delete = True
-            await self.mute_member(message, reason, 5)  
-            self.spam_users[author_id] = []  
+
+            if author_id not in self.muted_users:
+                await self.mute_member(message, reason, 5)  
+                self.spam_users[author_id] = []  
 
         # Jei reikia, triname žinutę ir siunčiame įspėjimą, bet tik vieną kartą
         if should_delete:
