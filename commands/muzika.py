@@ -10,7 +10,7 @@ class Muzika(commands.Cog):
         self.current_song = {}
 
     async def ensure_queue(self, ctx):
-        """Sukuria dainų eilę konkrečiam gildijai"""
+        """Sukuria dainų eilę konkrečiai gildijai"""
         if ctx.guild.id not in self.song_queue:
             self.song_queue[ctx.guild.id] = []
 
@@ -29,6 +29,9 @@ class Muzika(commands.Cog):
     @commands.command(name="play")
     async def play(self, ctx, *, search: str):
         """Prideda dainą į eilę arba pradeda groti"""
+        print(f"Komanda gauta: {search}")  # Debug log
+        await ctx.send(f"🔎 Ieškoma: `{search}`")
+
         if not await self.join_voice_channel(ctx):
             return
         await self.ensure_queue(ctx)
@@ -41,10 +44,15 @@ class Muzika(commands.Cog):
         }
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(search, download=False)
-            if "entries" in info:
+            if "entries" in info and len(info["entries"]) > 0:
                 info = info["entries"][0]
-            url = info["url"]
-            title = info["title"]
+
+            url = info.get("url", None)
+            title = info.get("title", "Nežinomas pavadinimas")
+
+            if url is None:
+                await ctx.send("❌ **Nepavyko gauti dainos URL.**")
+                return
 
         self.song_queue[ctx.guild.id].append((url, title))
 
@@ -63,8 +71,18 @@ class Muzika(commands.Cog):
         url, title = self.song_queue[ctx.guild.id].pop(0)
         self.current_song[ctx.guild.id] = title
 
+        def after_play(err):
+            fut = asyncio.run_coroutine_threadsafe(self.play_next(ctx), self.bot.loop)
+            try:
+                fut.result()
+            except Exception as e:
+                print(f"Klaida grojant kitą dainą: {e}")
+
         ctx.voice_client.stop()
-        ctx.voice_client.play(discord.FFmpegPCMAudio(url, executable="ffmpeg"), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx), self.bot.loop))
+        ctx.voice_client.play(
+            discord.FFmpegPCMAudio(url, executable="C:/ffmpeg/bin/ffmpeg.exe"),
+            after=after_play
+        )
 
         await ctx.send(f"🎶 **Dabar groja:** `{title}`")
 
