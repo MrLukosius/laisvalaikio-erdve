@@ -81,6 +81,18 @@ async def main():
             print("⚠️ Muzika nebuvo užkrauta")
         else:
             print("✅ Muzika sėkmingai užkrauta!")
+        if "commands.leveling" not in bot.extensions:
+            print("⚠️ Lygiai nebuvo užkrauti")
+        else:
+            print("✅ Lygiai sėkmingai užkrauti!")
+        if "commands.member_logger" not in bot.extensions:
+            print("⚠️ Nariu pranesejas nebuvo užkrautas")
+        else:
+            print("✅ Nariu pranesejas sėkmingai užkrautas!")
+        if "commands.reaction_verify" not in bot.extensions:
+            print("⚠️ Reakcijos patvirtinimas nebuvo užkrautas")
+        else:
+            print("✅ Reakcijos patvirtinimas sėkmingai užkrautas!")
         
 
         
