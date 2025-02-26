@@ -15,9 +15,18 @@ bot = commands.Bot(command_prefix="#", intents=intents)
 
 @bot.event
 async def on_ready():
-    activity = discord.Activity(type=discord.ActivityType.listening, name="Prižiūrių tvarką👀 Prefixas: # Komandų sąrašas: !komandos")
+    activity = discord.Activity(
+        type=discord.ActivityType.listening, 
+        name="Prižiūriu tvarką👀 Prefixas: # | Komandų sąrašas: #komandos"
+    )
     await bot.change_presence(status=discord.Status.online, activity=activity)
     print(f"✅ Prisijungta kaip {bot.user.name}")
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f"⌛ Palauk `{error.retry_after:.1f}` sekundžių prieš vėl naudojant šią komandą!", delete_after=3)
+
 
     # Užregistruojamos visos komandos
     for command in bot.commands:
