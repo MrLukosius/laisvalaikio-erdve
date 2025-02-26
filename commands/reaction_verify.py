@@ -5,6 +5,7 @@ import string
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 
+
 # Kanalas, kuriame nariai turi paspausti reakciją
 VERIFY_CHANNEL_ID = 1333458652828536832
 VERIFY_EMOJI = "✅"
