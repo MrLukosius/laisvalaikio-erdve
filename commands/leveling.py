@@ -23,10 +23,9 @@ class LevelSystem(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.XP_FILE = XP_FILE
-        self.xp_data = self.load_xp_data()  # Įkeliame XP duomenis iš failo
+        self.xp_data = self.load_xp_data()
 
     def load_xp_data(self):
-        """Įkelia XP duomenis iš failo"""
         try:
             with open(self.XP_FILE, "r") as f:
                 return json.load(f)
@@ -34,34 +33,31 @@ class LevelSystem(commands.Cog):
             return {}
 
     def save_xp_data(self):
-        """Įsaugo XP duomenis į failą"""
         with open(self.XP_FILE, "w") as f:
             json.dump(self.xp_data, f, indent=4)
         print(f"XP duomenys išsaugoti! ({len(self.xp_data)} nariai)")
 
     def get_level(self, xp):
-        """Apskaičiuoja nario lygį pagal XP"""
         level = 1
         while xp >= xp_needed_for_level(level):
             level += 1
-        return min(level, 500)  # Maksimalus lygis 500
+        return min(level, 500)
 
     async def update_member_roles(self, member):
-        """Atnaujina nario roles pagal jo XP ir lygį"""
         user_id = str(member.id)
         new_level = self.get_level(self.xp_data[user_id]["xp"])
-        role_to_give = LEVEL_ROLES.get(new_level)
-        role_to_remove = LEVEL_ROLES.get(new_level - 1)
 
-        if role_to_give:
-            role = member.guild.get_role(role_to_give)
-            if role and role not in member.roles:
-                await member.add_roles(role)
+        roles_to_give = [member.guild.get_role(role_id) for lvl, role_id in LEVEL_ROLES.items() if lvl <= new_level]
+        roles_to_give = [role for role in roles_to_give if role and role not in member.roles]
 
-        if role_to_remove:
-            old_role = member.guild.get_role(role_to_remove)
-            if old_role and old_role in member.roles:
-                await member.remove_roles(old_role)
+        roles_to_remove = [member.guild.get_role(role_id) for lvl, role_id in LEVEL_ROLES.items() if lvl > new_level]
+        roles_to_remove = [role for role in roles_to_remove if role and role in member.roles]
+
+        if roles_to_give:
+            await member.add_roles(*roles_to_give)
+
+        if roles_to_remove:
+            await member.remove_roles(*roles_to_remove)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -72,78 +68,35 @@ class LevelSystem(commands.Cog):
         if user_id not in self.xp_data:
             self.xp_data[user_id] = {"xp": 0, "level": 1}
 
-        # Pridedame atsitiktinį XP nuo 1 iki 5
         gained_xp = random.randint(1, 5)
         self.xp_data[user_id]["xp"] += gained_xp
         self.save_xp_data()
 
         new_level = self.get_level(self.xp_data[user_id]["xp"])
 
-        # Tikriname, ar narys pakilo lygiu
         if self.xp_data[user_id]["level"] < new_level:
             self.xp_data[user_id]["level"] = new_level
-            self.save_xp_data()  # Išsaugome atnaujintą lygį
-
+            self.save_xp_data()
             await self.update_member_roles(message.author)
 
-            channel = self.bot.get_channel(1333044850450239518)  # Lygio pasikėlimo kanalas
-            if channel:
+            channel = self.bot.get_channel(1333044850450239518)
+            if channel is not None:
                 await channel.send(f"🎉 {message.author.mention} pasiekė **{new_level}** lygį!")
 
-    @commands.command(name="addxp")
-    @commands.has_permissions(administrator=True)
-    async def add_xp(self, ctx, member: discord.Member, amount: int):
-        """Prideda XP nariui"""
-        if amount < 0:
-            await ctx.send("❌ Negalite pridėti neigiamos XP vertės.")
-            return
-
+    @commands.command(name="xpinfo")
+    async def xp_info(self, ctx, member: discord.Member = None):
+        member = member or ctx.author
         user_id = str(member.id)
-        if user_id not in self.xp_data:
-            self.xp_data[user_id] = {"xp": 0, "level": 1}
-
-        self.xp_data[user_id]["xp"] += amount
-        self.save_xp_data()
-        await self.update_member_roles(member)
-
-        await ctx.send(f"✅ Pridėta **{amount} XP** nariui {member.mention}!")
-
-    @commands.command(name="removexp")
-    @commands.has_permissions(administrator=True)
-    async def remove_xp(self, ctx, member: discord.Member, amount: int):
-        """Atima XP iš nario"""
-        if amount < 0:
-            await ctx.send("❌ Negalite atimti neigiamos XP vertės.")
-            return
-
-        user_id = str(member.id)
-        if user_id not in self.xp_data:
-            await ctx.send("❌ Šis narys dar neturi XP duomenų.")
-            return
-
-        self.xp_data[user_id]["xp"] = max(0, self.xp_data[user_id]["xp"] - amount)
-        self.save_xp_data()
-        await self.update_member_roles(member)
-
-        await ctx.send(f"✅ Atimta **{amount} XP** iš nario {member.mention}!")
-
-    @commands.command(name="topas")
-    async def leaderboard(self, ctx):
-        """Rodo TOP 10 narių su daugiausiai XP"""
-        sorted_users = sorted(self.xp_data.items(), key=lambda x: x[1]["xp"], reverse=True)[:10]
-        embed = discord.Embed(title="🏆 Lygių TOP lentelė", color=discord.Color.gold())
-
-        for index, (user_id, data) in enumerate(sorted_users, start=1):
-            user = self.bot.get_user(int(user_id))
-            if user:
-                embed.add_field(name=f"**{index}. {user.name}**", value=f"{data['xp']} XP (🆙 {data.get('level', 1)} lygis)", inline=False)
-
-        await ctx.send(embed=embed)
+        if user_id in self.xp_data:
+            xp = self.xp_data[user_id]["xp"]
+            level = self.get_level(xp)
+            await ctx.send(f"{member.mention} turi {xp} XP ir yra {level} lygyje.")
+        else:
+            await ctx.send(f"{member.mention} dar neturi XP duomenų.")
 
     @commands.command(name="update_roles", hidden=True)
     @commands.has_permissions(administrator=True)
     async def update_roles(self, ctx):
-        """Atnaujina visų narių roles pagal jų XP"""
         guild = ctx.guild
         updated_members = 0
 
@@ -152,16 +105,8 @@ class LevelSystem(commands.Cog):
             if not member:
                 continue
 
-            new_level = self.get_level(data["xp"])
-            role_to_give = guild.get_role(LEVEL_ROLES.get(new_level))
-            role_to_remove = guild.get_role(LEVEL_ROLES.get(new_level - 1))
-
-            if role_to_remove and role_to_remove in member.roles:
-                await member.remove_roles(role_to_remove)
-
-            if role_to_give and role_to_give not in member.roles:
-                await member.add_roles(role_to_give)
-                updated_members += 1
+            await self.update_member_roles(member)
+            updated_members += 1
 
         await ctx.send(f"✅ Atnaujintos **{updated_members}** narių roles pagal jų XP!")
 
