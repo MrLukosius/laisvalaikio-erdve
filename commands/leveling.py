@@ -31,6 +31,7 @@ class LevelSystem(commands.Cog):
     def save_xp_data(self):
         with open(XP_FILE, "w") as f:
             json.dump(self.xp_data, f, indent=4)
+        print("XP Data Saved:", self.xp_data)
 
     def get_level(self, xp):
         level = 1
@@ -124,6 +125,15 @@ class LevelSystem(commands.Cog):
         await self.update_member_roles(member)
 
         await ctx.send(f"✅ Atimta **{amount} XP** iš nario {member.mention}!")
+
+    @commands.command(name="update_roles")
+    @commands.has_permissions(administrator=True)
+    async def update_roles(self, ctx):
+        for member in ctx.guild.members:
+            user_id = str(member.id)
+            if user_id in self.xp_data:
+                await self.update_member_roles(member)
+        await ctx.send("✅ Visiems nariams atnaujintos rolės pagal jų lygį!")
 
 async def setup(bot):
     await bot.add_cog(LevelSystem(bot))
