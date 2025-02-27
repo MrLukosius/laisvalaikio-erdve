@@ -42,15 +42,15 @@ class LevelSystem(commands.Cog):
         user_id = str(member.id)
         new_level = self.get_level(self.xp_data[user_id]["xp"])
         role_to_give = LEVEL_ROLES.get(new_level)
-        role_to_remove = [r for lvl, r in LEVEL_ROLES.items() if lvl < new_level]
-        
+        role_to_remove = LEVEL_ROLES.get(new_level - 1)
+
         if role_to_give:
             role = member.guild.get_role(role_to_give)
             if role and role not in member.roles:
                 await member.add_roles(role)
-        
-        for role_id in role_to_remove:
-            old_role = member.guild.get_role(role_id)
+
+        if role_to_remove:
+            old_role = member.guild.get_role(role_to_remove)
             if old_role and old_role in member.roles:
                 await member.remove_roles(old_role)
 
@@ -68,6 +68,7 @@ class LevelSystem(commands.Cog):
         self.save_xp_data()
 
         new_level = self.get_level(self.xp_data[user_id]["xp"])
+
         if self.xp_data[user_id]["level"] < new_level:
             self.xp_data[user_id]["level"] = new_level
             self.save_xp_data()
@@ -81,13 +82,48 @@ class LevelSystem(commands.Cog):
     async def leaderboard(self, ctx):
         sorted_users = sorted(self.xp_data.items(), key=lambda x: x[1]["xp"], reverse=True)[:10]
         embed = discord.Embed(title="🏆 Lygių TOP lentelė", color=discord.Color.gold())
-        
+
         for index, (user_id, data) in enumerate(sorted_users, start=1):
             user = self.bot.get_user(int(user_id))
             if user:
                 embed.add_field(name=f"**{index}. {user.name}**", value=f"{data['xp']} XP (🆙 {data.get('level', 1)} lygis)", inline=False)
 
         await ctx.send(embed=embed)
+
+    @commands.command(name="addxp")
+    @commands.has_permissions(administrator=True)
+    async def add_xp(self, ctx, member: discord.Member, amount: int):
+        if amount < 0:
+            await ctx.send("❌ Negalite pridėti neigiamos XP vertės.")
+            return
+
+        user_id = str(member.id)
+        if user_id not in self.xp_data:
+            self.xp_data[user_id] = {"xp": 0, "level": 1}
+
+        self.xp_data[user_id]["xp"] += amount
+        self.save_xp_data()
+        await self.update_member_roles(member)
+
+        await ctx.send(f"✅ Pridėta **{amount} XP** nariui {member.mention}!")
+
+    @commands.command(name="removexp")
+    @commands.has_permissions(administrator=True)
+    async def remove_xp(self, ctx, member: discord.Member, amount: int):
+        if amount < 0:
+            await ctx.send("❌ Negalite atimti neigiamos XP vertės.")
+            return
+
+        user_id = str(member.id)
+        if user_id not in self.xp_data:
+            await ctx.send("❌ Šis narys dar neturi XP duomenų.")
+            return
+
+        self.xp_data[user_id]["xp"] = max(0, self.xp_data[user_id]["xp"] - amount)
+        self.save_xp_data()
+        await self.update_member_roles(member)
+
+        await ctx.send(f"✅ Atimta **{amount} XP** iš nario {member.mention}!")
 
 async def setup(bot):
     await bot.add_cog(LevelSystem(bot))
