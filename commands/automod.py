@@ -116,15 +116,6 @@ class AutoMod(commands.Cog):
             mute_time = 5  # Mute 5 min
             self.spam_users[author_id] = []  # Resetinam spam counter
 
-        # **N18 turinio tikrinimas** (NSFW)
-        for attachment in message.attachments:
-            if attachment.content_type and attachment.content_type.startswith(("image/", "video/")):
-                if not message.channel.is_nsfw():
-                    reason = "N-18 turinys neleistiname kanale"
-                    should_delete = True
-                    mute_time = 30  # Mute 30 min
-                    break  # Sustabdome tikrinimą po pirmos rastos N-18 medijos
-
         # Jei reikia, triname žinutę ir siunčiame įspėjimą
         if should_delete:
             warn_msg = await message.channel.send(f"⚠️ {message.author.mention}, tavo žinutė buvo ištrinta. Priežastis: **{reason}**", delete_after=5)

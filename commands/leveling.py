@@ -22,20 +22,22 @@ def xp_needed_for_level(level):
 class LevelSystem(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.xp_data = self.load_xp_data()
+        self.XP_FILE = XP_FILE
+        self.xp_data = self.load_xp_data()  # Įkeliame XP duomenis iš failo
 
     def load_xp_data(self):
         """Įkelia XP duomenis iš failo"""
         try:
-            with open(XP_FILE, "r") as f:
+            with open(self.XP_FILE, "r") as f:
                 return json.load(f)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             return {}
 
     def save_xp_data(self):
-        """Išsaugo XP duomenis į failą"""
-        with open(XP_FILE, "w") as f:
+        """Įsaugo XP duomenis į failą"""
+        with open(self.XP_FILE, "w") as f:
             json.dump(self.xp_data, f, indent=4)
+        print(f"XP duomenys išsaugoti! ({len(self.xp_data)} nariai)")
 
     def get_level(self, xp):
         """Apskaičiuoja nario lygį pagal XP"""
@@ -46,7 +48,8 @@ class LevelSystem(commands.Cog):
 
     async def update_member_roles(self, member):
         """Atnaujina nario roles pagal jo XP ir lygį"""
-        new_level = self.get_level(self.xp_data[str(member.id)]["xp"])
+        user_id = str(member.id)
+        new_level = self.get_level(self.xp_data[user_id]["xp"])
         role_to_give = LEVEL_ROLES.get(new_level)
         role_to_remove = LEVEL_ROLES.get(new_level - 1)
 
@@ -79,7 +82,8 @@ class LevelSystem(commands.Cog):
         # Tikriname, ar narys pakilo lygiu
         if self.xp_data[user_id]["level"] < new_level:
             self.xp_data[user_id]["level"] = new_level
-            self.save_xp_data()
+            self.save_xp_data()  # Išsaugome atnaujintą lygį
+
             await self.update_member_roles(message.author)
 
             channel = self.bot.get_channel(1333044850450239518)  # Lygio pasikėlimo kanalas
