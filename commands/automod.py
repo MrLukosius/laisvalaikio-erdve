@@ -48,10 +48,13 @@ class AutoMod(commands.Cog):
         if mute_role in message.author.roles:
             return  # Jei jau turi mute, nebeduodam dar kartą
 
-        await message.author.add_roles(mute_role, reason=reason)
-        await message.channel.send(f"🔇 {message.author.mention}, gavai mute {duration} minutėms! Priežastis: **{reason}**")
+        msg = await message.channel.send(f"🔇 {message.author.mention}, gavai mute {duration} minutėms! Priežastis: **{reason}**")
+        await asyncio.sleep(5)
+        await msg.delete()
+
         await self.send_log(message, "🔇 Narys užtildytas", message.author, reason)
 
+        await message.author.add_roles(mute_role, reason=reason)
         await asyncio.sleep(duration * 60)
         
         if mute_role in message.author.roles:
@@ -114,16 +117,20 @@ class AutoMod(commands.Cog):
             self.spam_users[author_id] = []  # Resetinam spam counter
 
         # **N18 turinio tikrinimas** (NSFW)
-        if any(attachment.content_type.startswith(("image/", "video/")) for attachment in message.attachments):
-            if not message.channel.is_nsfw():  # Jei kanalas nėra NSFW
-                reason = "N-18 turinys neleistiname kanale"
-                should_delete = True
-                mute_time = 30  # Mute 30 min
+        for attachment in message.attachments:
+            if attachment.content_type and attachment.content_type.startswith(("image/", "video/")):
+                if not message.channel.is_nsfw():
+                    reason = "N-18 turinys neleistiname kanale"
+                    should_delete = True
+                    mute_time = 30  # Mute 30 min
+                    break  # Sustabdome tikrinimą po pirmos rastos N-18 medijos
 
         # Jei reikia, triname žinutę ir siunčiame įspėjimą
         if should_delete:
+            warn_msg = await message.channel.send(f"⚠️ {message.author.mention}, tavo žinutė buvo ištrinta. Priežastis: **{reason}**", delete_after=5)
+            await asyncio.sleep(5)
+            await warn_msg.delete()
             await message.delete()
-            await message.channel.send(f"⚠️ {message.author.mention}, tavo žinutė buvo ištrinta. Priežastis: **{reason}**", delete_after=5)
 
         # Jei reikia mute, pridedame
         if mute_time > 0:

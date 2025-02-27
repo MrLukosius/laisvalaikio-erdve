@@ -30,7 +30,7 @@ class Komandos(commands.Cog):
         **#ban @narys [priežastis]** – Užblokuoja vartotoją
         **#mute @narys [trukmė]** – Nutildo vartotoją (uždeda rolę)
         **#unmute @narys** – Nuima mute nuo vartotojo
-        **#isvalyti [kiekis**] – Išvalo žinutes pasirinktame kanale
+        **#isvalyti [kiekis]** – Išvalo žinutes pasirinktame kanale
         """
         embed.add_field(name="🛠 Administracijos komandos", value=administracija, inline=False)
 
