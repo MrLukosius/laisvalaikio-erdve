@@ -9,9 +9,12 @@ class EmbedBuilder(commands.Cog):
 
     @commands.command(name="embed")
     async def embed_command(self, ctx):
-        """Pradeda embed kūrimo procesą"""
-        await ctx.send("🛠️ Įveskite informaciją apie embed:", ephemeral=True)
-        await ctx.author.send_modal(EmbedModal())  # Modal siunčiamas DM arba kaip interakcija
+        """Pradeda embed kurimo procesa"""
+        if ctx.interaction: #tikrina, ar tai slash komanda
+            await ctx.interaction.response.send_modal(EmbedModal())
+        else:
+            await ctx.send("❌ Ši komanda turi būti naudojama su / prefixu.")
+
 
 
 class EmbedModal(Modal, title="Sukurti Embed"):
