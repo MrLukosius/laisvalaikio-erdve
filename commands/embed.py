@@ -1,85 +1,73 @@
 import discord
-from discord import app_commands, ui
 from discord.ext import commands
-
-class EmbedBuilderModal(ui.Modal, title="🔧 Embed kūrimas"):
-    title_input = ui.TextInput(label="Pavadinimas", required=False)
-    description_input = ui.TextInput(label="Aprašymas", style=discord.TextStyle.paragraph, required=False)
-    color_input = ui.TextInput(label="Spalva (hex, pvz.: #3498db)", required=False)
-    image_url_input = ui.TextInput(label="Paveikslėlio URL", required=False)
-    thumbnail_url_input = ui.TextInput(label="Thumbnail URL", required=False)
-
-    def __init__(self, ctx):
-        super().__init__()
-        self.ctx = ctx
-
-    async def on_submit(self, interaction: discord.Interaction):
-        color = discord.Color.default()
-        if self.color_input.value:
-            try:
-                color = discord.Color(int(self.color_input.value.lstrip('#'), 16))
-            except ValueError:
-                await interaction.response.send_message("⚠️ Netinkama spalvos reikšmė! Naudokite hex formatą (pvz.: #3498db)", ephemeral=True)
-                return
-        
-        embed = discord.Embed(
-            title=self.title_input.value or "",
-            description=self.description_input.value or "",
-            color=color
-        )
-        if self.image_url_input.value:
-            embed.set_image(url=self.image_url_input.value)
-        if self.thumbnail_url_input.value:
-            embed.set_thumbnail(url=self.thumbnail_url_input.value)
-        
-        view = ConfirmEmbedView(embed, self.ctx)
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
-class ConfirmEmbedView(ui.View):
-    def __init__(self, embed, ctx):
-        super().__init__()
-        self.embed = embed
-        self.ctx = ctx
-
-    @ui.button(label="✅ Išsiųsti", style=discord.ButtonStyle.green)
-    async def send_button(self, interaction: discord.Interaction, button: ui.Button):
-        await interaction.response.send_message("Kur norite išsiųsti pranešimą?", ephemeral=True, view=ChannelSelectView(self.embed, self.ctx))
-
-    @ui.button(label="❌ Atšaukti", style=discord.ButtonStyle.red)
-    async def cancel_button(self, interaction: discord.Interaction, button: ui.Button):
-        await interaction.response.edit_message(content="🚫 Embed kūrimas atšauktas!", view=None, embed=None)
-
-class ChannelSelectView(ui.View):
-    def __init__(self, embed, ctx):
-        super().__init__()
-        self.embed = embed
-        self.ctx = ctx
-        
-        self.add_item(ChannelDropdown(embed, ctx))
-
-class ChannelDropdown(ui.Select):
-    def __init__(self, embed, ctx):
-        self.embed = embed
-        self.ctx = ctx
-        options = [
-            discord.SelectOption(label=channel.name, value=str(channel.id))
-            for channel in ctx.guild.text_channels
-        ]
-        super().__init__(placeholder="Pasirinkite kanalą...", options=options)
-
-    async def callback(self, interaction: discord.Interaction):
-        channel = self.ctx.guild.get_channel(int(self.values[0]))
-        await channel.send(embed=self.embed)
-        await interaction.response.edit_message(content=f"✅ Embed išsiųstas į {channel.mention}!", view=None, embed=None)
+from discord.ui import View, Button, Modal, TextInput, Select
 
 class EmbedBuilder(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="embed", description="Sukuria embed pranešimą")
-    async def embed_command(self, interaction: discord.Interaction):
-        modal = EmbedBuilderModal(interaction)
-        await interaction.response.send_modal(modal)
+    @commands.command(name="embed")
+    async def embed_command(self, ctx):
+        """Pradeda embed kūrimo procesą"""
+        modal = EmbedModal()
+        await ctx.send("🛠️ Įveskite informaciją apie embed:", view=modal)
+
+class EmbedModal(Modal):
+    def __init__(self):
+        super().__init__(title="Sukurti Embed")
+        self.title_input = TextInput(label="Pavadinimas", required=True)
+        self.description_input = TextInput(label="Aprašymas", style=discord.TextStyle.long, required=True)
+        self.color_input = TextInput(label="Spalva (hex, pvz., #ff0000)", required=False)
+        self.image_input = TextInput(label="Paveikslėlio URL", required=False)
+        self.add_item(self.title_input)
+        self.add_item(self.description_input)
+        self.add_item(self.color_input)
+        self.add_item(self.image_input)
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        """Kai vartotojas pateikia informaciją"""
+        embed = discord.Embed(
+            title=self.title_input.value,
+            description=self.description_input.value,
+            color=discord.Color.from_str(self.color_input.value) if self.color_input.value else discord.Color.blue()
+        )
+        if self.image_input.value:
+            embed.set_image(url=self.image_input.value)
+        
+        view = EmbedView(embed)
+        await interaction.response.send_message("🔍 Peržiūrėkite savo embed:", embed=embed, view=view)
+
+class EmbedView(View):
+    def __init__(self, embed):
+        super().__init__()
+        self.embed = embed
+
+        self.add_item(Button(label="Išsiųsti", style=discord.ButtonStyle.green, custom_id="send"))
+        self.add_item(Button(label="Atšaukti", style=discord.ButtonStyle.red, custom_id="cancel"))
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        """Tvarko mygtukų paspaudimus"""
+        if interaction.data["custom_id"] == "send":
+            await interaction.response.send_message("📩 Į kurį kanalą norite siųsti?", view=ChannelSelectView(self.embed), ephemeral=True)
+        elif interaction.data["custom_id"] == "cancel":
+            await interaction.response.send_message("❌ Embed kūrimas atšauktas.", ephemeral=True)
+            self.stop()
+
+class ChannelSelectView(View):
+    def __init__(self, embed):
+        super().__init__()
+        self.embed = embed
+        self.add_item(Select(placeholder="Pasirinkite kanalą", options=[]))
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        """Kai vartotojas pasirenka kanalą"""
+        channel_id = int(interaction.data["values"][0])
+        channel = interaction.guild.get_channel(channel_id)
+        if channel:
+            await channel.send(embed=self.embed)
+            await interaction.response.send_message("✅ Embed sėkmingai išsiųstas!", ephemeral=True)
+        else:
+            await interaction.response.send_message("⚠️ Nepavyko rasti kanalo.", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(EmbedBuilder(bot))
