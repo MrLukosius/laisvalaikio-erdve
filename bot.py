@@ -102,6 +102,10 @@ async def main():
             print("⚠️ Reakcijos patvirtinimas nebuvo užkrautas")
         else:
             print("✅ Reakcijos patvirtinimas sėkmingai užkrautas!")
+        if "commands.embed" not in bot.extensions:
+            print("⚠️ Embed nebuvo užkrautas")
+        else:
+            print("✅ Embed sėkmingai užkrautas!")
         
 
         
