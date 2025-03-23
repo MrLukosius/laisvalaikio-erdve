@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Dashboard</title>
+</head>
+<body>
+    <h1>🎛️ Discord Bot Valdymas</h1>
+    <form id="embedForm">
+        <input type="text" id="channelId" placeholder="Kanal ID" required><br>
+        <input type="text" id="title" placeholder="Embed Pavadinimas" required><br>
+        <textarea id="description" placeholder="Aprašymas"></textarea><br>
+        <button type="submit">📩 Siųsti Embed</button>
+    </form>
+
+    <script>
+        document.getElementById("embedForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            fetch("discord-bot-token.up.railway.app/send_embed", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    channel_id: document.getElementById("channelId").value,
+                    title: document.getElementById("title").value,
+                    description: document.getElementById("description").value
+                })
+            }).then(response => response.json()).then(data => alert(data.message));
+        });
+    </script>
+</body>
+</html>
