@@ -1,2 +1,2 @@
-worker: python3 bot.py
-web: python3 commands/dashboard.py
+worker: python bot.py
+web: python commands/dashboard.py
