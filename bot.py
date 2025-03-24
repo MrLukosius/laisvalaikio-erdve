@@ -17,7 +17,7 @@ bot = commands.Bot(command_prefix="#", intents=intents)
 async def on_ready():
     activity = discord.Activity(
         type=discord.ActivityType.listening, 
-        name="Prižiūriu tvarką👀 Prefixas: # | Komandų sąrašas: #komandos"
+        name="Prižiūriu tvarką👀 #komandos"
     )
     await bot.change_presence(status=discord.Status.online, activity=activity)
     print(f"✅ Prisijungta kaip {bot.user.name}")
