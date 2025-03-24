@@ -2,15 +2,10 @@ import discord
 from discord.ext import commands
 import asyncio
 import os
-import threading
 from dotenv import load_dotenv
 
-# Užkrauname .env failą
+# Užkrauname .env failą (jei naudojamas)
 load_dotenv()
-
-TOKEN = os.getenv("DISCORD_TOKEN")  # Įsitikink, kad env faile yra DISCORD_TOKEN
-if not TOKEN:
-    raise ValueError("❌ DISCORD_TOKEN nėra nustatytas aplinkos kintamuosiuose!")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -34,7 +29,7 @@ async def on_command_error(ctx, error):
 
 async def load_extensions():
     for filename in os.listdir("./commands"):
-        if filename.endswith(".py"):
+        if filename.endswith(".py") and filename != "dashboard.py":
             extension = f"commands.{filename[:-3]}"
             try:
                 await bot.load_extension(extension)
@@ -47,12 +42,7 @@ async def load_extensions():
 async def main():
     async with bot:
         await load_extensions()
-        await bot.start(TOKEN)
+        await bot.start(os.getenv("DISCORD_TOKEN"))
 
-# Paleidžiame bot'ą kaip atskirą "thread", kad Flask dashboard veiktų kartu
-def run_discord_bot():
-    asyncio.run(main())
-
-# Jei šis failas paleidžiamas kaip pagrindinis, startuojame botą
-if __name__ == "__main__":
-    threading.Thread(target=run_discord_bot, daemon=True).start()
+# Startuojame bot'ą
+asyncio.run(main())
