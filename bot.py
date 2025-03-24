@@ -2,10 +2,15 @@ import discord
 from discord.ext import commands
 import asyncio
 import os
+import threading
 from dotenv import load_dotenv
 
-# Užkrauname .env failą (jei naudojamas)
+# Užkrauname .env failą
 load_dotenv()
+
+TOKEN = os.getenv("DISCORD_TOKEN")  # Įsitikink, kad env faile yra DISCORD_TOKEN
+if not TOKEN:
+    raise ValueError("❌ DISCORD_TOKEN nėra nustatytas aplinkos kintamuosiuose!")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -27,11 +32,6 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         await ctx.send(f"⌛ Palauk `{error.retry_after:.1f}` sekundžių prieš vėl naudojant šią komandą!", delete_after=3)
 
-
-    # Užregistruojamos visos komandos
-    for command in bot.commands:
-        print(f"🔹 Užregistruota komanda: {command.name}")
-
 async def load_extensions():
     for filename in os.listdir("./commands"):
         if filename.endswith(".py"):
@@ -47,70 +47,12 @@ async def load_extensions():
 async def main():
     async with bot:
         await load_extensions()
-        
-        # Patikriname, ar `serveris` ir `bradega` tikrai užkrauti
-        if "commands.serveris" not in bot.extensions:
-            print("⚠️ Komanda `#serveris` nebuvo užkrautas!")
-        else:
-            print("✅ Komanda `#serveris` sėkmingai užkrautas!")
+        await bot.start(TOKEN)
 
-        if "commands.bradega" not in bot.extensions:
-            print("⚠️ Komanda `#bradega` nebuvo užkrauta!")
-        else:
-            print("✅ Komanda `#bradega` sėkmingai užkrauta!")
-        if "commands.moderation" not in bot.extensions:
-            print("⚠️ Moderavimo komandos nebuvo užkrautos")
-        else:
-            print("✅ Moderavimo komandos sėkmingai užkrautos!")
-        if "commands.komandos" not in bot.extensions:
-            print("⚠️ Komanda #komandos nebuvo užkrauta")
-        else:
-            print("✅ Komanda #komandos sėkmingai užkrauta!")
-        if "commands.nario-info" not in bot.extensions:
-            print("⚠️ Komanda #nario-info nebuvo užkrauta")
-        else:
-            print("✅ Komanda #nario-info sėkmingai užkrauta!")
-        if "commands.kick_notifier" not in bot.extensions:
-            print("⚠️ Kick pranesejas nebuvo užkrauta")
-        else:
-            print("✅ Kick pranesejas sėkmingai užkrauta!")
-        if "commands.tiktok_notifier" not in bot.extensions:
-            print("⚠️ Tiktok pranesejas nebuvo užkrauta")
-        else:
-            print("✅ Tiktok pranesejas sėkmingai užkrauta!")
-        if "commands.automod" not in bot.extensions:
-            print("⚠️ Auto-moderavimas nebuvo užkrauta")
-        else:
-            print("✅ Auto-moderavimas sėkmingai užkrauta!")
-        if "commands.isvalyti" not in bot.extensions:
-            print("⚠️ Isvalymas nebuvo užkrauta")
-        else:
-            print("✅ Isvalymas sėkmingai užkrauta!")
-        if "commands.muzika" not in bot.extensions:
-            print("⚠️ Muzika nebuvo užkrauta")
-        else:
-            print("✅ Muzika sėkmingai užkrauta!")
-        if "commands.leveling" not in bot.extensions:
-            print("⚠️ Lygiai nebuvo užkrauti")
-        else:
-            print("✅ Lygiai sėkmingai užkrauti!")
-        if "commands.member_logger" not in bot.extensions:
-            print("⚠️ Nariu pranesejas nebuvo užkrautas")
-        else:
-            print("✅ Nariu pranesejas sėkmingai užkrautas!")
-        if "commands.reaction_verify" not in bot.extensions:
-            print("⚠️ Reakcijos patvirtinimas nebuvo užkrautas")
-        else:
-            print("✅ Reakcijos patvirtinimas sėkmingai užkrautas!")
-        if "commands.embed" not in bot.extensions:
-            print("⚠️ Embed nebuvo užkrautas")
-        else:
-            print("✅ Embed sėkmingai užkrautas!")
-        
+# Paleidžiame bot'ą kaip atskirą "thread", kad Flask dashboard veiktų kartu
+def run_discord_bot():
+    asyncio.run(main())
 
-        
-
-        await bot.start(os.getenv("DISCORD_TOKEN"))
-
-# Startuojame bot'ą
-asyncio.run(main())
+# Jei šis failas paleidžiamas kaip pagrindinis, startuojame botą
+if __name__ == "__main__":
+    threading.Thread(target=run_discord_bot, daemon=True).start()

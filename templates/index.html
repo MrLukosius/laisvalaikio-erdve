@@ -17,7 +17,7 @@
     <script>
         document.getElementById("embedForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            fetch("https://discord-bot-token.up.railway.app/send_embed", {
+            fetch("/send_embed", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
