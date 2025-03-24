@@ -1,48 +1,49 @@
 from flask import Flask, request, jsonify, render_template
 import requests
 import os
-import threading
-from bot import run_discord_bot  # Importuojame boto paleidimą
+from dotenv import load_dotenv
 
-# Sukuriame Flask aplikaciją
+load_dotenv()
+
 app = Flask(__name__)
 
-TOKEN = os.getenv("DISCORD_TOKEN")
-DISCORD_API = "https://discord.com/api/v10"
+BOT_API_URL = "http://127.0.0.1:5000"  # Įsitikink, kad botas klausosi šioje vietoje
+BOT_TOKEN = os.getenv("DISCORD_TOKEN")
 
-@app.route("/")
-def index():
-    return render_template("index.html")  # Užkrauna index.html
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-@app.route("/send_embed", methods=["POST"])
+@app.route('/send_embed', methods=['POST'])
 def send_embed():
     data = request.json
     channel_id = data.get("channel_id")
-    embed = {
-        "title": data.get("title"),
-        "description": data.get("description"),
-        "color": 5814783
-    }
+    title = data.get("title")
+    description = data.get("description")
 
-    headers = {
-        "Authorization": f"Bot {TOKEN}",
-        "Content-Type": "application/json"
+    if not channel_id or not title:
+        return jsonify({"message": "Trūksta duomenų"}), 400
+
+    headers = {"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/json"}
+    embed_payload = {
+        "content": None,
+        "embeds": [{
+            "title": title,
+            "description": description,
+            "color": 16711680
+        }]
     }
 
     response = requests.post(
-        f"{DISCORD_API}/channels/{channel_id}/messages",
+        f"https://discord.com/api/v10/channels/{channel_id}/messages",
         headers=headers,
-        json={"embeds": [embed]}
+        json=embed_payload
     )
 
-    if response.status_code == 200:
-        return jsonify({"message": "✅ Embed išsiųstas!"}), 200
+    if response.status_code == 200 or response.status_code == 201:
+        return jsonify({"message": "Embed išsiųstas!"})
     else:
-        return jsonify({"error": "❌ Nepavyko išsiųsti"}), response.status_code
+        return jsonify({"message": f"Klaida: {response.text}"}), response.status_code
 
-if __name__ == "__main__":
-    # Paleidžiame botą lygiagrečiai su Flask
-    threading.Thread(target=run_discord_bot, daemon=True).start()
-    
-    # Startuojame Flask serverį
+if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080, debug=True)
