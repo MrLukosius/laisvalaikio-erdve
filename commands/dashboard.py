@@ -5,14 +5,13 @@ from flask_cors import CORS
 import threading
 import os
 
-# Sukuriame Flask App
+# Flask App
 app = Flask(__name__)
 CORS(app)
 
-# Sukuriame Discord botą
+# Sukuriame botą
 TOKEN = os.getenv("TOKEN")  # Bot tokenas iš Railway
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="#", intents=intents)
+bot = commands.Bot(command_prefix="#", intents=discord.Intents.all())
 
 @app.route('/')
 def home():
@@ -20,7 +19,7 @@ def home():
 
 @app.route('/dashboard')
 def dashboard():
-    return render_template("index.html")  # Atvaizduoja dashboard HTML
+    return render_template("index.html")
 
 @app.route('/send_embed', methods=['POST'])
 async def send_embed():
@@ -31,23 +30,16 @@ async def send_embed():
     
     embed = discord.Embed(title=title, description=description, color=discord.Color.blue())
     channel = bot.get_channel(channel_id)
-    
     if channel:
         await channel.send(embed=embed)
         return jsonify({"status": "success", "message": "Embed išsiųstas!"})
     else:
         return jsonify({"status": "error", "message": "Kanalas nerastas!"})
 
-# Kai botas prisijungia
-@bot.event
-async def on_ready():
-    print(f"{bot.user} prisijungė!")
+# Paleidžiame botą atskirame threade
+def run_discord_bot():
+    bot.run(TOKEN)
 
-# Paleidžiame Flask serveryje kitame "thread"
-def run_flask():
-    app.run(host="0.0.0.0", port=8080)
-
-# Startuojame tiek Flask, tiek Discord botą
 if __name__ == '__main__':
-    threading.Thread(target=run_flask).start()  # Paleidžia Flask
-    bot.run(TOKEN)  # Paleidžia Discord botą
+    threading.Thread(target=run_discord_bot).start()  # Paleidžia botą atskirame procese
+    app.run(host="0.0.0.0", port=8080)  # Paleidžia Flask
