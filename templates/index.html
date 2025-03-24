@@ -4,9 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laisvalaikio Erdvės Bot'o Dashboard'as</title>
+    <style>
+        body {
+            background-color: white;
+            color: black;
+        }
+        body.dark-mode {
+            background-color: black;
+            color: white;
+        }
+        .toggle-button {
+            margin: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
+    <button class="toggle-button" onclick="toggleDarkMode()">🌙 Perjungti Tamsų Režimą</button>
     <form id="embedForm">
         <input type="text" id="channelId" placeholder="Kanalo ID" required><br>
         <input type="text" id="title" placeholder="Embed'o Pavadinimas" required><br>
@@ -15,6 +31,10 @@
     </form>
 
     <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
         document.getElementById("embedForm").addEventListener("submit", function(e) {
             e.preventDefault();
             fetch("/send_embed", {
