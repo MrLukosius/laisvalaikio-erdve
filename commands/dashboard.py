@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Sukuriame botą
-TOKEN = os.getenv("TOKEN")  # Bot tokenas iš Railway
+TOKEN = os.getenv("DISCORD_TOKEN")  # Bot tokenas iš Railway
 bot = commands.Bot(command_prefix="#", intents=discord.Intents.all())
 
 @app.route('/')
