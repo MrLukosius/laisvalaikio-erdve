@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, render_template
 import requests
 import os
+import asyncio
+import threading
 from dotenv import load_dotenv
 
 # Užkrauname aplinkos kintamuosius
@@ -9,19 +11,16 @@ load_dotenv()
 # Sukuriame Flask aplikaciją
 app = Flask(__name__, template_folder="../templates")
 
-# Nustatome Discord API adresą ir bot tokeną
 BOT_API_URL = "https://discord.com/api/v10"
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
 
 if not BOT_TOKEN:
     raise ValueError("❌ DISCORD_TOKEN nėra nustatytas .env faile!")
 
-# Pagrindinis puslapis
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# API endpoint embed žinutės siuntimui į Discord
 @app.route('/send_embed', methods=['POST'])
 def send_embed():
     try:
@@ -60,7 +59,8 @@ def send_embed():
     except Exception as e:
         return jsonify({"message": f"❌ Serverio klaida: {str(e)}"}), 500
 
-# Paleidžiame Flask serverį
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port, debug=True)
+# Nauja asinchroninė funkcija dashboard'ui paleisti
+def start_dashboard():
+    thread = threading.Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)), debug=True, use_reloader=False))
+    thread.daemon = True
+    thread.start()

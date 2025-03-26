@@ -3,8 +3,9 @@ from discord.ext import commands
 import asyncio
 import os
 from dotenv import load_dotenv
+from commands.dashboard import start_dashboard  # Importuojame start_dashboard
 
-# Užkrauname .env failą (jei naudojamas)
+# Užkrauname .env failą
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -40,9 +41,9 @@ async def load_extensions():
                 print(f"❌ Klaida įkeliant {filename}: {e}")
 
 async def main():
-    async with bot:
-        await load_extensions()
-        await bot.start(os.getenv("DISCORD_TOKEN"))
+    start_dashboard()  # Paleidžiame Flask dashboard'ą atskiroje gijoje
+    await load_extensions()
+    await bot.start(os.getenv("DISCORD_TOKEN"))
 
 # Startuojame bot'ą
 asyncio.run(main())
