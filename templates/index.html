@@ -3,26 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laisvalaikio Erdvės Bot'o Dashboard'as</title>
+    <title>LĖ Bot'o Dashboard'as</title>
     <style>
-        body {
-            background-color: white;
-            color: black;
-        }
-        body.dark-mode {
-            background-color: black;
-            color: white;
-        }
-        .toggle-button {
-            margin: 10px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
+        body { background-color: white; color: black; }
+        body.dark-mode { background-color: black; color: white; }
+        .toggle-button { margin: 10px; padding: 5px 10px; cursor: pointer; }
     </style>
 </head>
 <body>
     <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
     <button class="toggle-button" onclick="toggleDarkMode()">🌙 Perjungti Tamsų Režimą</button>
+
+    <h2>📩 Siųsti Embed</h2>
     <form id="embedForm">
         <input type="text" id="channelId" placeholder="Kanalo ID" required><br>
         <input type="text" id="title" placeholder="Embed'o Pavadinimas" required><br>
@@ -30,11 +22,20 @@
         <button type="submit">📩 Siųsti Embed</button>
     </form>
 
+    <h2>🎭 Priskirti Rolę Žinutei</h2>
+    <form id="roleForm">
+        <input type="text" id="messageId" placeholder="Žinutės ID" required><br>
+        <select id="roleSelect"></select><br>
+        <input type="text" id="emoji" placeholder="Emoji (pvz. 👍 arba 😀)" required><br>
+        <button type="submit">✅ Priskirti Rolę</button>
+    </form>
+
     <script>
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
 
+        // Siunčia embed į Discord
         document.getElementById("embedForm").addEventListener("submit", function(e) {
             e.preventDefault();
             fetch("/send_embed", {
@@ -44,6 +45,38 @@
                     channel_id: document.getElementById("channelId").value,
                     title: document.getElementById("title").value,
                     description: document.getElementById("description").value
+                })
+            }).then(response => response.json()).then(data => alert(data.message));
+        });
+
+        // Gauna roles iš serverio
+        function loadRoles() {
+            fetch("/get_roles")
+                .then(response => response.json())
+                .then(data => {
+                    const roleSelect = document.getElementById("roleSelect");
+                    roleSelect.innerHTML = "";  // Išvalome dropdown'ą
+                    data.forEach(role => {
+                        let option = document.createElement("option");
+                        option.value = role.id;
+                        option.textContent = role.name;
+                        roleSelect.appendChild(option);
+                    });
+                });
+        }
+        loadRoles(); // Pakviečiame funkciją užkrauti roles
+
+        // Priskiria reakciją rolei
+        document.getElementById("roleForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            fetch("/assign_role_reaction", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    channel_id: document.getElementById("channelId").value,
+                    message_id: document.getElementById("messageId").value,
+                    role_id: document.getElementById("roleSelect").value,
+                    emoji: document.getElementById("emoji").value
                 })
             }).then(response => response.json()).then(data => alert(data.message));
         });
