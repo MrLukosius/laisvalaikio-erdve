@@ -61,6 +61,16 @@ class AutoMod(commands.Cog):
         if message.author.bot or any(role.id in ADMIN_ROLES for role in message.author.roles):
             return  
 
+        # Patikriname, ar vartotojas turi konkretų vaidmenį, kuris leidžia siųsti linkus specifiniame kanale
+        bypass_role_id = 1344063403668406335
+        bypass_channel_id = 1343675594218410047
+        has_bypass_role = any(role.id == bypass_role_id for role in message.author.roles)
+        is_in_bypass_channel = message.channel.id == bypass_channel_id
+
+        # Jei vartotojas turi specifinį vaidmenį ir žinutė parašyta leistame kanale, leidžiame siųsti linkus
+        if has_bypass_role and is_in_bypass_channel:
+            return  # Leisti linkams šiam vartotojui šiame kanale be jokių tikrinimų
+
         content_lower = message.content.lower()
         should_delete = False
         reason = None
