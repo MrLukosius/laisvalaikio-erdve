@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
 import asyncio
-import re  # Pridėtas regex CAPS patikrinimui
 
 BAD_WORDS = ["blt", "blyat", "blet", "nahuj", "nx", "nahui", "krw", "kurva", "kurwa", "bybis", "bybys", "bybiai"]
 RACIST_WORDS = ["nigga", "niggeris", "nyggeris", "nygeris", "nigeriukas", "pedikas", "pydaras", "pyderas", "pidaras", "pideras"]
@@ -111,13 +110,7 @@ class AutoMod(commands.Cog):
             reason = "Spam"
             should_delete = True
             mute_time = 5  
-            self.spam_users[author_id] = []  
-
-        # ✅ CAPS LOCK tikrinimas
-        if re.search(r"[A-Z]{5,}", message.content):
-            reason = "Per daug didžiųjų raidžių (CAPS)"
-            should_delete = True
-            mute_time = 10  
+            self.spam_users[author_id] = []    
 
         if should_delete:
             warn_msg = await message.channel.send(f"⚠️ {message.author.mention}, tavo žinutė buvo ištrinta. Priežastis: **{reason}**", delete_after=5)
