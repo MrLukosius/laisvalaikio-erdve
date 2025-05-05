@@ -23,6 +23,39 @@ HEADERS = {"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/jso
 def home():
     return render_template('index.html')
 
+@app.route('/get_channels', methods=['GET'])
+def get_channels():
+    """Grąžina serverio kanalų sąrašą"""
+    url = f"{BOT_API_URL}/guilds/{GUILD_ID}/channels"
+    response = requests.get(url, headers=HEADERS)
+
+    if response.status_code == 200:
+        channels = response.json()
+        
+        # Filtruoti tik tekstinius kanalus
+        text_channels = [
+            {
+                "id": channel["id"], 
+                "name": channel["name"],
+                "type": channel["type"],  # Kanalų tipas (pvz., 0 - tekstinis)
+                "topic": channel.get("topic", "Nėra temos")  # Kanalo tema (jei yra)
+            }
+            for channel in channels if channel["type"] == 0  # Tik tekstiniai kanalai
+        ]
+        
+        # Pridėkite papildomą informaciją apie kanalus
+        additional_info = {
+            "total_channels": len(text_channels),
+            "message": "Kanalo sąrašas sėkmingai gautas."
+        }
+        
+        return jsonify({
+            "channels": text_channels,
+            "additional_info": additional_info
+        })
+    else:
+        return jsonify({"error": "Nepavyko gauti kanalų."}), response.status_code
+
 @app.route('/preview_embed', methods=['POST'])
 def preview_embed():
     """Grąžina embed peržiūrą"""
