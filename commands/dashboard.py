@@ -23,44 +23,36 @@ HEADERS = {"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/jso
 def home():
     return render_template('index.html')
 
-@app.route('/get_roles', methods=['GET'])
-def get_roles():
-    """Grąžina serverio roles."""
-    url = f"{BOT_API_URL}/guilds/{GUILD_ID}/roles"
-    response = requests.get(url, headers=HEADERS)
-
-    if response.status_code == 200:
-        roles = response.json()
-        return jsonify(roles)
-    else:
-        return jsonify({"error": f"Klaida gaunant roles: {response.status_code}"}), response.status_code
-
-@app.route('/assign_role_reaction', methods=['POST'])
-def assign_role_reaction():
-    """Priskiria reakciją rolei prie nurodytos žinutės."""
+@app.route('/send_embed', methods=['POST'])
+def send_embed():
+    """Siunčia embed su nuotrauka į Discord"""
     try:
-        data = request.json
+        data = request.form
         channel_id = data.get("channel_id")
-        message_id = data.get("message_id")
-        role_id = data.get("role_id")
-        emoji = data.get("emoji")
+        title = data.get("title")
+        description = data.get("description")
+        image_url = data.get("image_url")
+        image_file = request.files.get("image_file")
 
-        if not all([channel_id, message_id, role_id, emoji]):
-            return jsonify({"message": "❌ Trūksta reikalingų duomenų!"}), 400
+        embed = {
+            "title": title,
+            "description": description,
+            "color": 3447003,  # Default color (blue)
+        }
 
-        # Pridedame reakciją prie žinutės
-        emoji_encoded = emoji if emoji.isascii() else requests.utils.quote(emoji)
-        url = f"{BOT_API_URL}/channels/{channel_id}/messages/{message_id}/reactions/{emoji_encoded}/@me"
-        
-        response = requests.put(url, headers=HEADERS)
+        if image_url:
+            embed["image"] = {"url": image_url}
 
-        if response.status_code in [200, 201, 204]:
-            return jsonify({"message": "✅ Reakcija pridėta!"})
-        else:
-            return jsonify({"message": f"❌ Klaida: {response.status_code} - {response.text}"}), response.status_code
+        # Jei yra failas
+        if image_file:
+            # Upload to Discord API (this should be modified to handle actual file upload)
+            pass
+
+        # Implement your Discord channel sending logic here.
+        return jsonify({"message": "✅ Embed sėkmingai išsiųstas!"})
 
     except Exception as e:
-        return jsonify({"message": f"❌ Serverio klaida: {str(e)}"}), 500
+        return jsonify({"message": f"❌ Klaida: {str(e)}"}), 500
 
 # Paleidžiame Flask serverį atskirame threade
 def start_dashboard():

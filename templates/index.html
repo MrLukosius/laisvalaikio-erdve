@@ -19,6 +19,8 @@
         <input type="text" id="channelId" placeholder="Kanalo ID" required><br>
         <input type="text" id="title" placeholder="Embed'o Pavadinimas" required><br>
         <textarea id="description" placeholder="Aprašymas"></textarea><br>
+        <input type="text" id="imageUrl" placeholder="Paveikslėlio URL" /><br>
+        <input type="file" id="imageFile" /><br>
         <button type="submit">📩 Siųsti Embed</button>
     </form>
 
@@ -38,14 +40,18 @@
         // Siunčia embed į Discord
         document.getElementById("embedForm").addEventListener("submit", function(e) {
             e.preventDefault();
+            const formData = new FormData();
+            const imageFile = document.getElementById("imageFile").files[0];
+            formData.append("channel_id", document.getElementById("channelId").value);
+            formData.append("title", document.getElementById("title").value);
+            formData.append("description", document.getElementById("description").value);
+            formData.append("image_url", document.getElementById("imageUrl").value);
+            if (imageFile) {
+                formData.append("image_file", imageFile);
+            }
             fetch("/send_embed", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    channel_id: document.getElementById("channelId").value,
-                    title: document.getElementById("title").value,
-                    description: document.getElementById("description").value
-                })
+                body: formData
             }).then(response => response.json()).then(data => alert(data.message));
         });
 

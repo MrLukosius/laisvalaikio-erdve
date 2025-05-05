@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ui import View, Button, Modal, TextInput, Select
-
+from discord.ui import FileInput
 
 class EmbedBuilder(commands.Cog):
     def __init__(self, bot):
@@ -10,18 +10,17 @@ class EmbedBuilder(commands.Cog):
     @commands.command(name="embed")
     async def embed_command(self, ctx):
         """Pradeda embed kurimo procesa"""
-        if ctx.interaction: #tikrina, ar tai slash komanda
+        if ctx.interaction:  # Tikrina, ar tai slash komanda
             await ctx.interaction.response.send_modal(EmbedModal())
         else:
             await ctx.send("❌ Ši komanda turi būti naudojama su / prefixu.")
-
-
 
 class EmbedModal(Modal, title="Sukurti Embed"):
     title_input = TextInput(label="Pavadinimas", required=True)
     description_input = TextInput(label="Aprašymas", style=discord.TextStyle.long, required=True)
     color_input = TextInput(label="Spalva (hex, pvz., #ff0000)", required=False)
-    image_input = TextInput(label="Paveikslėlio URL", required=False)
+    image_input = TextInput(label="Paveikslėlio URL arba įkelkite failą", required=False)
+    file_input = FileInput(label="Įkelkite paveikslėlį", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
         """Kai vartotojas pateikia informaciją"""
@@ -30,7 +29,13 @@ class EmbedModal(Modal, title="Sukurti Embed"):
             description=self.description_input.value,
             color=discord.Color.from_str(self.color_input.value) if self.color_input.value else discord.Color.blue()
         )
-        if self.image_input.value:
+        
+        # Jei įkeliamas failas
+        if self.file_input:
+            embed.set_image(url="attachment://image.png")
+
+        # Jei pateikiama URL nuoroda
+        elif self.image_input.value:
             embed.set_image(url=self.image_input.value)
 
         await interaction.response.send_message(
