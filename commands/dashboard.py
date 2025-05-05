@@ -94,6 +94,7 @@ def preview_embed():
 def send_embed():
     """Siunčia embed į pasirinkto kanalo Discord"""
     try:
+        # Gauti duomenis iš užklausos
         data = request.json
         channel_id = data.get("channel_id")
         title = data.get("title")
@@ -112,9 +113,13 @@ def send_embed():
 
         # Jei spalva pateikta, ją pridėti
         if color:
-            color_int = hex_to_int(color)  # Konvertuoti į dekstimalinį skaičių
-            embed["color"] = color_int  # Įtraukia spalvą, jei pateikta
-        
+            try:
+                color_int = hex_to_int(color)  # Konvertuoti į dekstimalinį skaičių
+                embed["color"] = color_int  # Įtraukia spalvą, jei pateikta
+            except ValueError as e:
+                return jsonify({"message": f"❌ Netinkama spalvos reikšmė: {e}"}), 400
+
+        # Jei pateikta nuotrauka, ją pridėti
         if image_url:
             embed["image"] = {"url": image_url}
 
@@ -125,7 +130,11 @@ def send_embed():
         # Siųsti embed į pasirinkto kanalo Discord
         url = f"{BOT_API_URL}/channels/{channel_id}/messages"
         payload = {"embed": embed}
-        
+
+        # Debug: Patikriname, kokie duomenys siunčiami
+        print(f"Siunčiame embed: {payload}")  # Debug, kad patikrintume embed turinį
+
+        # Atlikti užklausą į Discord API
         response = requests.post(url, json=payload, headers=HEADERS)
 
         if response.status_code == 200:
@@ -135,6 +144,7 @@ def send_embed():
 
     except Exception as e:
         return jsonify({"message": f"❌ Klaida: {str(e)}"}), 500
+
 
 
 
