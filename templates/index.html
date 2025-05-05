@@ -8,6 +8,7 @@
         body { background-color: white; color: black; }
         body.dark-mode { background-color: black; color: white; }
         .toggle-button { margin: 10px; padding: 5px 10px; cursor: pointer; }
+        .embed-preview { border: 1px solid #ccc; padding: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -16,73 +17,71 @@
 
     <h2>📩 Siųsti Embed</h2>
     <form id="embedForm">
-        <input type="text" id="channelId" placeholder="Kanalo ID" required><br>
         <input type="text" id="title" placeholder="Embed'o Pavadinimas" required><br>
         <textarea id="description" placeholder="Aprašymas"></textarea><br>
+        <input type="text" id="color" placeholder="Spalva (hex, pvz., #ff0000)"><br>
         <input type="text" id="imageUrl" placeholder="Paveikslėlio URL" /><br>
-        <input type="file" id="imageFile" /><br>
         <button type="submit">📩 Siųsti Embed</button>
     </form>
 
-    <h2>🎭 Priskirti Rolę Žinutei</h2>
-    <form id="roleForm">
-        <input type="text" id="messageId" placeholder="Žinutės ID" required><br>
-        <select id="roleSelect"></select><br>
-        <input type="text" id="emoji" placeholder="Emoji (pvz. 👍 arba 😀)" required><br>
-        <button type="submit">✅ Priskirti Rolę</button>
-    </form>
+    <button onclick="previewEmbed()">👁️ Peržiūrėti Embed</button>
+
+    <div id="embedPreview" class="embed-preview" style="display:none;">
+        <h3>Peržiūrėti Embed</h3>
+        <div id="embedTitle"></div>
+        <div id="embedDescription"></div>
+        <div id="embedImage"></div>
+    </div>
 
     <script>
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
 
-        // Siunčia embed į Discord
+        // Funkcija peržiūrėti embed
+        function previewEmbed() {
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+            const color = document.getElementById("color").value;
+            const imageUrl = document.getElementById("imageUrl").value;
+
+            const embedData = {
+                title: title,
+                description: description,
+                color: color,
+                image_url: imageUrl
+            };
+
+            fetch("/preview_embed", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(embedData)
+            }).then(response => response.json())
+              .then(data => {
+                  const embedPreview = document.getElementById("embedPreview");
+                  embedPreview.style.display = "block";
+                  document.getElementById("embedTitle").innerText = "Title: " + data.embed.title;
+                  document.getElementById("embedDescription").innerText = "Description: " + data.embed.description;
+
+                  if (data.embed.image) {
+                      document.getElementById("embedImage").innerHTML = "<img src='" + data.embed.image.url + "' alt='Embed Image' style='max-width: 300px;'/>";
+                  } else {
+                      document.getElementById("embedImage").innerHTML = "No image provided.";
+                  }
+              });
+        }
+
+        // Siųsti embed į Discord
         document.getElementById("embedForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            const formData = new FormData();
-            const imageFile = document.getElementById("imageFile").files[0];
-            formData.append("channel_id", document.getElementById("channelId").value);
-            formData.append("title", document.getElementById("title").value);
-            formData.append("description", document.getElementById("description").value);
-            formData.append("image_url", document.getElementById("imageUrl").value);
-            if (imageFile) {
-                formData.append("image_file", imageFile);
-            }
             fetch("/send_embed", {
-                method: "POST",
-                body: formData
-            }).then(response => response.json()).then(data => alert(data.message));
-        });
-
-        // Gauna roles iš serverio
-        function loadRoles() {
-            fetch("/get_roles")
-                .then(response => response.json())
-                .then(data => {
-                    const roleSelect = document.getElementById("roleSelect");
-                    roleSelect.innerHTML = "";  // Išvalome dropdown'ą
-                    data.forEach(role => {
-                        let option = document.createElement("option");
-                        option.value = role.id;
-                        option.textContent = role.name;
-                        roleSelect.appendChild(option);
-                    });
-                });
-        }
-        loadRoles(); // Pakviečiame funkciją užkrauti roles
-
-        // Priskiria reakciją rolei
-        document.getElementById("roleForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            fetch("/assign_role_reaction", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    channel_id: document.getElementById("channelId").value,
-                    message_id: document.getElementById("messageId").value,
-                    role_id: document.getElementById("roleSelect").value,
-                    emoji: document.getElementById("emoji").value
+                    title: document.getElementById("title").value,
+                    description: document.getElementById("description").value,
+                    color: document.getElementById("color").value,
+                    image_url: document.getElementById("imageUrl").value
                 })
             }).then(response => response.json()).then(data => alert(data.message));
         });

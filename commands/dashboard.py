@@ -23,33 +23,26 @@ HEADERS = {"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/jso
 def home():
     return render_template('index.html')
 
-@app.route('/send_embed', methods=['POST'])
-def send_embed():
-    """Siunčia embed su nuotrauka į Discord"""
+@app.route('/preview_embed', methods=['POST'])
+def preview_embed():
+    """Grąžina embed peržiūrą"""
     try:
-        data = request.form
-        channel_id = data.get("channel_id")
+        data = request.json
         title = data.get("title")
         description = data.get("description")
+        color = data.get("color", "#0000ff")  # Default color (blue)
         image_url = data.get("image_url")
-        image_file = request.files.get("image_file")
-
+        
         embed = {
             "title": title,
             "description": description,
-            "color": 3447003,  # Default color (blue)
+            "color": color,
         }
 
         if image_url:
             embed["image"] = {"url": image_url}
 
-        # Jei yra failas
-        if image_file:
-            # Upload to Discord API (this should be modified to handle actual file upload)
-            pass
-
-        # Implement your Discord channel sending logic here.
-        return jsonify({"message": "✅ Embed sėkmingai išsiųstas!"})
+        return jsonify({"embed": embed})
 
     except Exception as e:
         return jsonify({"message": f"❌ Klaida: {str(e)}"}), 500
