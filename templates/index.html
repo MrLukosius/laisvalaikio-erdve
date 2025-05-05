@@ -21,6 +21,12 @@
         <textarea id="description" placeholder="Aprašymas"></textarea><br>
         <input type="text" id="color" placeholder="Spalva (hex, pvz., #ff0000)"><br>
         <input type="text" id="imageUrl" placeholder="Paveikslėlio URL" /><br>
+        
+        <!-- Pridėti kanalo pasirinkimą -->
+        <select id="channelSelect" required>
+            <option value="">Pasirinkite kanalą</option>
+        </select><br>
+
         <button type="submit">📩 Siųsti Embed</button>
     </form>
 
@@ -71,13 +77,33 @@
               });
         }
 
+        // Funkcija užpildyti kanalų pasirinkimo lauką
+        function loadChannels() {
+            fetch("/get_channels")
+                .then(response => response.json())
+                .then(data => {
+                    const channelSelect = document.getElementById("channelSelect");
+                    data.channels.forEach(channel => {
+                        let option = document.createElement("option");
+                        option.value = channel.id;
+                        option.textContent = channel.name;
+                        channelSelect.appendChild(option);
+                    });
+                });
+        }
+
+        loadChannels(); // Pakviečiame funkciją užkrauti kanalus
+
         // Siųsti embed į Discord
         document.getElementById("embedForm").addEventListener("submit", function(e) {
             e.preventDefault();
+            const channelId = document.getElementById("channelSelect").value;
+
             fetch("/send_embed", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    channel_id: channelId,
                     title: document.getElementById("title").value,
                     description: document.getElementById("description").value,
                     color: document.getElementById("color").value,

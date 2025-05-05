@@ -47,6 +47,40 @@ def preview_embed():
     except Exception as e:
         return jsonify({"message": f"❌ Klaida: {str(e)}"}), 500
 
+@app.route('/send_embed', methods=['POST'])
+def send_embed():
+    """Siunčia embed į pasirinkto kanalo Discord"""
+    try:
+        data = request.json
+        channel_id = data.get("channel_id")
+        title = data.get("title")
+        description = data.get("description")
+        color = data.get("color", "#0000ff")  # Default color (blue)
+        image_url = data.get("image_url")
+        
+        embed = {
+            "title": title,
+            "description": description,
+            "color": color,
+        }
+
+        if image_url:
+            embed["image"] = {"url": image_url}
+
+        # Siųsti embed į pasirinkto kanalo Discord
+        url = f"{BOT_API_URL}/channels/{channel_id}/messages"
+        payload = {"embed": embed}
+        
+        response = requests.post(url, json=payload, headers=HEADERS)
+
+        if response.status_code == 200:
+            return jsonify({"message": "✅ Embed sėkmingai išsiųstas!"})
+        else:
+            return jsonify({"message": f"❌ Klaida: {response.status_code} - {response.text}"}), response.status_code
+
+    except Exception as e:
+        return jsonify({"message": f"❌ Klaida: {str(e)}"}), 500
+
 # Paleidžiame Flask serverį atskirame threade
 def start_dashboard():
     thread = threading.Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)), debug=True, use_reloader=False))
