@@ -101,6 +101,10 @@ def send_embed():
         color = data.get("color")  # Jei spalvos nėra, ji bus None
         image_url = data.get("image_url")
         
+        # Patikriname, ar yra bent vienas reikšmingas embed laukas
+        if not title and not description:
+            return jsonify({"message": "❌ Embed turi turėti bent pavadinimą arba aprašymą!"}), 400
+
         embed = {
             "title": title,
             "description": description,
@@ -127,6 +131,7 @@ def send_embed():
 
     except Exception as e:
         return jsonify({"message": f"❌ Klaida: {str(e)}"}), 500
+
 
 # Paleidžiame Flask serverį atskirame threade
 def start_dashboard():
