@@ -148,6 +148,7 @@ def send_embed():
 
 
 
+
 # Paleidžiame Flask serverį atskirame threade
 def start_dashboard():
     thread = threading.Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)), debug=True, use_reloader=False))
