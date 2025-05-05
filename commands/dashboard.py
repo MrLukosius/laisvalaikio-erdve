@@ -101,7 +101,7 @@ def send_embed():
         color = data.get("color")  # Jei spalvos nėra, ji bus None
         image_url = data.get("image_url")
         
-        # Patikriname, ar yra bent vienas reikšmingas embed laukas
+        # Patikriname, kad embed turi bent vieną reikšmingą lauką
         if not title and not description:
             return jsonify({"message": "❌ Embed turi turėti bent pavadinimą arba aprašymą!"}), 400
 
@@ -118,6 +118,10 @@ def send_embed():
         if image_url:
             embed["image"] = {"url": image_url}
 
+        # Patikriname, ar embed turi turinio
+        if not embed.get("title") and not embed.get("description") and not embed.get("image"):
+            return jsonify({"message": "❌ Embed turi turėti bent pavadinimą, aprašymą arba paveikslėlį!"}), 400
+
         # Siųsti embed į pasirinkto kanalo Discord
         url = f"{BOT_API_URL}/channels/{channel_id}/messages"
         payload = {"embed": embed}
@@ -131,6 +135,7 @@ def send_embed():
 
     except Exception as e:
         return jsonify({"message": f"❌ Klaida: {str(e)}"}), 500
+
 
 
 # Paleidžiame Flask serverį atskirame threade
