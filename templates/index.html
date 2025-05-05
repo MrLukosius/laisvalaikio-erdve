@@ -19,7 +19,7 @@
     <form id="embedForm">
         <input type="text" id="title" placeholder="Embed'o Pavadinimas" required><br>
         <textarea id="description" placeholder="Aprašymas"></textarea><br>
-        <input type="text" id="color" placeholder="Spalva (hex, pvz., #ff0000)"><br>
+        <input type="text" id="color" placeholder="Spalva (hex, pvz., #ff0000, palikite tuščią jei nenorite spalvos)"><br>
         <input type="text" id="imageUrl" placeholder="Paveikslėlio URL" /><br>
         
         <!-- Pridėti kanalo pasirinkimą -->
@@ -54,7 +54,7 @@
             const embedData = {
                 title: title,
                 description: description,
-                color: color,
+                color: color, // Jei spalvos nėra, ji bus tuščia ir nebus įtraukta
                 image_url: imageUrl
             };
 
@@ -106,7 +106,7 @@
                     channel_id: channelId,
                     title: document.getElementById("title").value,
                     description: document.getElementById("description").value,
-                    color: document.getElementById("color").value,
+                    color: document.getElementById("color").value,  // Jei spalvos nėra, ši reikšmė bus tuščia
                     image_url: document.getElementById("imageUrl").value
                 })
             }).then(response => response.json()).then(data => alert(data.message));

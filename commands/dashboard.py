@@ -69,18 +69,19 @@ def preview_embed():
         data = request.json
         title = data.get("title")
         description = data.get("description")
-        color = data.get("color", "#0000ff")  # Default color (blue)
+        color = data.get("color")  # Jei spalvos nėra, ji bus None
         image_url = data.get("image_url")
         
-        # Konvertuojame hex spalvą į int
-        color_int = hex_to_int(color)
-
         embed = {
             "title": title,
             "description": description,
-            "color": color_int,  # Naudojame int spalvą
         }
 
+        # Jei spalva pateikta, ją pridėti
+        if color:
+            color_int = hex_to_int(color)  # Konvertuoti į dekstimalinį skaičių
+            embed["color"] = color_int  # Įtraukia spalvą, jei pateikta
+        
         if image_url:
             embed["image"] = {"url": image_url}
 
@@ -97,18 +98,19 @@ def send_embed():
         channel_id = data.get("channel_id")
         title = data.get("title")
         description = data.get("description")
-        color = data.get("color", "#0000ff")  # Default color (blue)
+        color = data.get("color")  # Jei spalvos nėra, ji bus None
         image_url = data.get("image_url")
         
-        # Konvertuojame hex spalvą į int
-        color_int = hex_to_int(color)
-
         embed = {
             "title": title,
             "description": description,
-            "color": color_int,  # Naudojame int spalvą
         }
 
+        # Jei spalva pateikta, ją pridėti
+        if color:
+            color_int = hex_to_int(color)  # Konvertuoti į dekstimalinį skaičių
+            embed["color"] = color_int  # Įtraukia spalvą, jei pateikta
+        
         if image_url:
             embed["image"] = {"url": image_url}
 
