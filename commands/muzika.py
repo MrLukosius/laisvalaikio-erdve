@@ -10,12 +10,10 @@ class Muzika(commands.Cog):
         self.current_song = {}
 
     async def ensure_queue(self, ctx):
-        """Sukuria dainų eilę konkrečiai gildijai"""
         if ctx.guild.id not in self.song_queue:
             self.song_queue[ctx.guild.id] = []
 
     async def join_voice_channel(self, ctx):
-        """Botas prisijungia į balso kanalą"""
         if ctx.author.voice is None:
             await ctx.send("❌ **Turi būti prisijungęs prie balso kanalo!**")
             return False
@@ -28,8 +26,7 @@ class Muzika(commands.Cog):
 
     @commands.command(name="play")
     async def play(self, ctx, *, search: str):
-        """Prideda dainą į eilę arba pradeda groti"""
-        print(f"Komanda gauta: {search}")  # Debug log
+        print(f"Komanda gauta: {search}")
         await ctx.send(f"🔎 Ieškoma: `{search}`")
 
         if not await self.join_voice_channel(ctx):
@@ -40,14 +37,14 @@ class Muzika(commands.Cog):
             "format": "bestaudio/best",
             "quiet": True,
             "default_search": "ytsearch",
-            "extract_flat": "in_playlist",
         }
+
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(search, download=False)
             if "entries" in info and len(info["entries"]) > 0:
                 info = info["entries"][0]
 
-            url = info.get("url", None)
+            url = info["url"]
             title = info.get("title", "Nežinomas pavadinimas")
 
             if url is None:
@@ -56,13 +53,12 @@ class Muzika(commands.Cog):
 
         self.song_queue[ctx.guild.id].append((url, title))
 
-        if ctx.voice_client.is_playing():
+        if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
             await ctx.send(f"🎵 **Pridėta į eilę:** `{title}`")
         else:
             await self.play_next(ctx)
 
     async def play_next(self, ctx):
-        """Grojama kita daina iš eilės"""
         if not self.song_queue[ctx.guild.id]:
             await ctx.send("🎶 **Dainų eilė baigėsi. Botas palieka kanalą.**")
             await ctx.voice_client.disconnect()
@@ -72,15 +68,17 @@ class Muzika(commands.Cog):
         self.current_song[ctx.guild.id] = title
 
         def after_play(err):
+            if err:
+                print(f"Klaida grojant dainą: {err}")
             fut = asyncio.run_coroutine_threadsafe(self.play_next(ctx), self.bot.loop)
             try:
                 fut.result()
             except Exception as e:
-                print(f"Klaida grojant kitą dainą: {e}")
+                print(f"Klaida po dainos: {e}")
 
         ctx.voice_client.stop()
         ctx.voice_client.play(
-            discord.FFmpegPCMAudio(url, executable="C:/ffmpeg/bin/ffmpeg.exe"),
+            discord.FFmpegPCMAudio(url),  # Jei reikia, pridėk path prie ffmpeg: executable="C:/ffmpeg/bin/ffmpeg.exe"
             after=after_play
         )
 
@@ -88,29 +86,25 @@ class Muzika(commands.Cog):
 
     @commands.command(name="pause")
     async def pause(self, ctx):
-        """Sustabdo dabartinę dainą"""
-        if ctx.voice_client.is_playing():
+        if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.pause()
             await ctx.send("⏸ **Daina sustabdyta.**")
 
     @commands.command(name="unpause")
     async def unpause(self, ctx):
-        """Atstato sustabdytą dainą"""
-        if ctx.voice_client.is_paused():
+        if ctx.voice_client and ctx.voice_client.is_paused():
             ctx.voice_client.resume()
-            await ctx.send("▶️ **Daina atstabdyta.**")
+            await ctx.send("▶️ **Daina atstatyta.**")
 
     @commands.command(name="skip")
     async def skip(self, ctx):
-        """Praleidžia dabartinę dainą"""
-        if ctx.voice_client.is_playing():
+        if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.stop()
             await ctx.send("⏭ **Daina praleista.**")
             await self.play_next(ctx)
 
     @commands.command(name="queue")
     async def queue(self, ctx):
-        """Parodo dainų eilę"""
         if ctx.guild.id not in self.song_queue or not self.song_queue[ctx.guild.id]:
             await ctx.send("📭 **Dainų eilė tuščia.**")
         else:
@@ -119,7 +113,6 @@ class Muzika(commands.Cog):
 
     @commands.command(name="leave")
     async def leave(self, ctx):
-        """Botas palieka balso kanalą"""
         if ctx.voice_client:
             await ctx.voice_client.disconnect()
             await ctx.send("👋 **Botas paliko kanalą.**")
