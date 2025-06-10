@@ -1,222 +1,141 @@
 <!DOCTYPE html>
 <html lang="lt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LĖ Bot'o Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Rubik', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <title>LĖ Bot'o Dashboard'as</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #1e1f22;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
 
-    body {
-      margin: 0;
-      background: linear-gradient(to right, #20262E, #2C5364);
-      color: white;
-      padding: 20px;
-    }
+        h1 {
+            color: #7289da;
+        }
 
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
-    }
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-    }
+        input, textarea, select, button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-top: 5px;
+        }
 
-    .button, button {
-      background: #5865F2;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background 0.3s;
-    }
+        button {
+            background-color: #5865f2;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
-    .button:hover, button:hover {
-      background: #4752C4;
-    }
+        button:hover {
+            background-color: #4752c4;
+        }
 
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-    }
+        .embed-preview {
+            border: 1px solid #444;
+            padding: 20px;
+            background-color: #2f3136;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
 
-    .embed-preview {
-      margin-top: 30px;
-      padding: 20px;
-      border-radius: 15px;
-      background: rgba(255,255,255,0.07);
-    }
+        .login-button {
+            background-color: #5865f2;
+            color: white;
+            padding: 12px 24px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
 
-    img {
-      max-width: 100%;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
+        .login-button:hover {
+            background-color: #4752c4;
+        }
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .user-info {
-      font-size: 0.9rem;
-      color: #ccc;
-    }
-
-    .stats {
-      margin-top: 20px;
-      font-size: 0.95rem;
-      color: #aaa;
-    }
-
-    .dark-toggle {
-      background: #333;
-      padding: 5px 10px;
-      border-radius: 8px;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 15px;
-      }
-    }
-  </style>
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard</h1>
-      <div id="authInfo" class="user-info">🔄 Tikrinama...</div>
-    </div>
+    <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
 
-    <div class="stats" id="stats"></div>
+    <a class="login-button" href="/login">🔒 Prisijungti su Discord</a>
 
-    <button class="dark-toggle" onclick="toggleDarkMode()">🌙 Perjungti Tamsų Režimą</button>
+    <form id="embedForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">Embed pavadinimas</label>
+            <input type="text" id="title" name="title" placeholder="Pavadinimas">
+        </div>
+        <div class="form-group">
+            <label for="description">Aprašymas</label>
+            <textarea id="description" name="description" placeholder="Aprašymas"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="imageUrl">Paveikslėlio URL</label>
+            <input type="text" id="imageUrl" name="image_url" placeholder="https://...">
+        </div>
+        <div class="form-group">
+            <label for="image">Arba įkelk paveikslėlį</label>
+            <input type="file" id="image" name="image" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label for="channelSelect">Pasirinkti kanalą</label>
+            <select id="channelSelect" name="channel_id" required>
+                <option value="">-- Pasirinkite kanalą --</option>
+            </select>
+        </div>
 
-    <h2>📩 Siųsti Embed</h2>
-    <form id="embedForm">
-      <input type="text" id="title" placeholder="Embed'o Pavadinimas" required>
-      <textarea id="description" placeholder="Aprašymas"></textarea>
-      <input type="text" id="color" placeholder="Spalva (hex, pvz., #ff0000)">
-      <input type="text" id="imageUrl" placeholder="Paveikslėlio URL">
-      <select id="channelSelect" required>
-        <option value="">Pasirinkite kanalą</option>
-      </select>
-      <button type="submit">📤 Siųsti Embed</button>
+        <button type="submit">📩 Siųsti Embed</button>
     </form>
 
-    <button onclick="previewEmbed()">👁️ Peržiūrėti Embed</button>
-
     <div id="embedPreview" class="embed-preview" style="display:none;">
-      <h3>🔍 Peržiūra</h3>
-      <div id="embedTitle"></div>
-      <div id="embedDescription"></div>
-      <div id="embedImage"></div>
+        <h3>Peržiūra</h3>
+        <div id="embedTitle"></div>
+        <div id="embedDescription"></div>
+        <div id="embedImage"></div>
     </div>
-  </div>
 
-  <script>
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
-    }
+    <script>
+        document.getElementById("embedForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
 
-    // Užkrauti kanalus
-    function loadChannels() {
-      fetch("/get_channels")
-        .then(r => r.json())
-        .then(data => {
-          const select = document.getElementById("channelSelect");
-          data.channels.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c.id;
-            opt.textContent = `#${c.name}`;
-            select.appendChild(opt);
-          });
-
-          const stats = document.getElementById("stats");
-          stats.innerHTML = `📊 Kanalų skaičius: <strong>${data.additional_info.total_channels}</strong>`;
+            fetch("/send_embed", {
+                method: "POST",
+                body: formData
+            }).then(res => res.json())
+              .then(data => alert(data.message))
+              .catch(err => alert("❌ Klaida: " + err));
         });
-    }
 
-    // Prisijungimo informacija
-    function checkAuth() {
-      fetch("/user")
-        .then(r => r.json())
-        .then(data => {
-          const auth = document.getElementById("authInfo");
-          if (data.logged_in) {
-            auth.innerHTML = `👋 Sveiki, <strong>${data.user.username}</strong>! <a href="/logout" class="button">Atsijungti</a>`;
-          } else {
-            auth.innerHTML = `<a href="/login" class="button">🔐 Prisijungti su Discord</a>`;
-          }
-        });
-    }
-
-    // Embed peržiūra
-    function previewEmbed() {
-      const title = document.getElementById("title").value;
-      const description = document.getElementById("description").value;
-      const color = document.getElementById("color").value;
-      const imageUrl = document.getElementById("imageUrl").value;
-
-      fetch("/preview_embed", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, color, image_url: imageUrl })
-      }).then(r => r.json()).then(data => {
-        document.getElementById("embedPreview").style.display = "block";
-        document.getElementById("embedTitle").innerText = "📌 " + data.embed.title;
-        document.getElementById("embedDescription").innerText = "📝 " + data.embed.description;
-        if (data.embed.image) {
-          document.getElementById("embedImage").innerHTML = `<img src="${data.embed.image.url}" alt="Embed Image">`;
-        } else {
-          document.getElementById("embedImage").innerText = "🖼️ Nėra paveikslėlio";
+        function loadChannels() {
+            fetch("/get_channels")
+                .then(res => res.json())
+                .then(data => {
+                    const select = document.getElementById("channelSelect");
+                    data.channels.forEach(channel => {
+                        let option = document.createElement("option");
+                        option.value = channel.id;
+                        option.textContent = `#${channel.name}`;
+                        select.appendChild(option);
+                    });
+                });
         }
-      });
-    }
 
-    // Siųsti embed
-    document.getElementById("embedForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const channelId = document.getElementById("channelSelect").value;
-
-      fetch("/send_embed", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          channel_id: channelId,
-          title: document.getElementById("title").value,
-          description: document.getElementById("description").value,
-          color: document.getElementById("color").value,
-          image_url: document.getElementById("imageUrl").value
-        })
-      })
-        .then(r => r.json())
-        .then(data => alert(data.message));
-    });
-
-    // Inicijuoti
-    loadChannels();
-    checkAuth();
-  </script>
+        loadChannels();
+    </script>
 </body>
 </html>
