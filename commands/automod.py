@@ -21,6 +21,7 @@ MUTE_ROLE_ID = 1333038923387113565
 LOG_CHANNEL_ID = 1333039387482525829  
 SPAM_LIMIT = 5
 SPAM_TIMEFRAME = 10
+BYPASS_CHANNEL_ID = 1343675594218410047  # Kanalo ID, kuriame leidžiami linkai
 
 class AutoMod(commands.Cog):
     def __init__(self, bot):
@@ -62,13 +63,12 @@ class AutoMod(commands.Cog):
 
         # Patikriname, ar vartotojas turi konkretų vaidmenį, kuris leidžia siųsti linkus specifiniame kanale
         bypass_role_id = 1344063403668406335
-        bypass_channel_id = 1343675594218410047
         has_bypass_role = any(role.id == bypass_role_id for role in message.author.roles)
-        is_in_bypass_channel = message.channel.id == bypass_channel_id
+        is_in_bypass_channel = message.channel.id == BYPASS_CHANNEL_ID
 
         # Jei vartotojas turi specifinį vaidmenį ir žinutė parašyta leistame kanale, leidžiame siųsti linkus
         if has_bypass_role and is_in_bypass_channel:
-            return  # Leisti linkams šiam vartotojui šiame kanale be jokių tikrinimų
+            return  # Leisti viską šiam vartotojui šiame kanale
 
         content_lower = message.content.lower()
         should_delete = False
@@ -88,14 +88,16 @@ class AutoMod(commands.Cog):
             mute_time = 15  
 
         elif any(invite in content_lower for invite in INVITE_LINKS):
-            reason = "Discord kvietimo linkas"
-            should_delete = True
-            mute_time = 5  
+            if not is_in_bypass_channel:
+                reason = "Discord kvietimo linkas"
+                should_delete = True
+                mute_time = 5  
 
         elif any(link in content_lower for link in BANNED_LINKS):
-            reason = "Draudžiamas linkas"
-            should_delete = True
-            mute_time = 5  
+            if not is_in_bypass_channel:
+                reason = "Draudžiamas linkas"
+                should_delete = True
+                mute_time = 5  
 
         author_id = message.author.id
         now = asyncio.get_event_loop().time()
