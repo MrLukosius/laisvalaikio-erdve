@@ -1,116 +1,222 @@
 <!DOCTYPE html>
 <html lang="lt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LĖ Bot'o Dashboard'as</title>
-    <style>
-        body { background-color: white; color: black; }
-        body.dark-mode { background-color: black; color: white; }
-        .toggle-button { margin: 10px; padding: 5px 10px; cursor: pointer; }
-        .embed-preview { border: 1px solid #ccc; padding: 10px; margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LĖ Bot'o Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Rubik', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(to right, #20262E, #2C5364);
+      color: white;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    .button, button {
+      background: #5865F2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+
+    .button:hover, button:hover {
+      background: #4752C4;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+    }
+
+    .embed-preview {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-info {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .stats {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: #aaa;
+    }
+
+    .dark-toggle {
+      background: #333;
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
-    <button class="toggle-button" onclick="toggleDarkMode()">🌙 Perjungti Tamsų Režimą</button>
+  <div class="container">
+    <div class="topbar">
+      <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard</h1>
+      <div id="authInfo" class="user-info">🔄 Tikrinama...</div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌙 Perjungti Tamsų Režimą</button>
 
     <h2>📩 Siųsti Embed</h2>
     <form id="embedForm">
-        <input type="text" id="title" placeholder="Embed'o Pavadinimas" required><br>
-        <textarea id="description" placeholder="Aprašymas"></textarea><br>
-        <input type="text" id="color" placeholder="Spalva (hex, pvz., #ff0000, palikite tuščią jei nenorite spalvos)"><br>
-        <input type="text" id="imageUrl" placeholder="Paveikslėlio URL" /><br>
-        
-        <!-- Pridėti kanalo pasirinkimą -->
-        <select id="channelSelect" required>
-            <option value="">Pasirinkite kanalą</option>
-        </select><br>
-
-        <button type="submit">📩 Siųsti Embed</button>
+      <input type="text" id="title" placeholder="Embed'o Pavadinimas" required>
+      <textarea id="description" placeholder="Aprašymas"></textarea>
+      <input type="text" id="color" placeholder="Spalva (hex, pvz., #ff0000)">
+      <input type="text" id="imageUrl" placeholder="Paveikslėlio URL">
+      <select id="channelSelect" required>
+        <option value="">Pasirinkite kanalą</option>
+      </select>
+      <button type="submit">📤 Siųsti Embed</button>
     </form>
 
     <button onclick="previewEmbed()">👁️ Peržiūrėti Embed</button>
 
     <div id="embedPreview" class="embed-preview" style="display:none;">
-        <h3>Peržiūrėti Embed</h3>
-        <div id="embedTitle"></div>
-        <div id="embedDescription"></div>
-        <div id="embedImage"></div>
+      <h3>🔍 Peržiūra</h3>
+      <div id="embedTitle"></div>
+      <div id="embedDescription"></div>
+      <div id="embedImage"></div>
     </div>
+  </div>
 
-    <script>
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-        }
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
 
-        // Funkcija peržiūrėti embed
-        function previewEmbed() {
-            const title = document.getElementById("title").value;
-            const description = document.getElementById("description").value;
-            const color = document.getElementById("color").value;
-            const imageUrl = document.getElementById("imageUrl").value;
+    // Užkrauti kanalus
+    function loadChannels() {
+      fetch("/get_channels")
+        .then(r => r.json())
+        .then(data => {
+          const select = document.getElementById("channelSelect");
+          data.channels.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.id;
+            opt.textContent = `#${c.name}`;
+            select.appendChild(opt);
+          });
 
-            const embedData = {
-                title: title,
-                description: description,
-                color: color, // Jei spalvos nėra, ji bus tuščia ir nebus įtraukta
-                image_url: imageUrl
-            };
-
-            fetch("/preview_embed", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(embedData)
-            }).then(response => response.json())
-              .then(data => {
-                  const embedPreview = document.getElementById("embedPreview");
-                  embedPreview.style.display = "block";
-                  document.getElementById("embedTitle").innerText = "Title: " + data.embed.title;
-                  document.getElementById("embedDescription").innerText = "Description: " + data.embed.description;
-
-                  if (data.embed.image) {
-                      document.getElementById("embedImage").innerHTML = "<img src='" + data.embed.image.url + "' alt='Embed Image' style='max-width: 300px;'/>";
-                  } else {
-                      document.getElementById("embedImage").innerHTML = "No image provided.";
-                  }
-              });
-        }
-
-        // Funkcija užpildyti kanalų pasirinkimo lauką
-        function loadChannels() {
-            fetch("/get_channels")
-                .then(response => response.json())
-                .then(data => {
-                    const channelSelect = document.getElementById("channelSelect");
-                    data.channels.forEach(channel => {
-                        let option = document.createElement("option");
-                        option.value = channel.id;
-                        option.textContent = channel.name;
-                        channelSelect.appendChild(option);
-                    });
-                });
-        }
-
-        loadChannels(); // Pakviečiame funkciją užkrauti kanalus
-
-        // Siųsti embed į Discord
-        document.getElementById("embedForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const channelId = document.getElementById("channelSelect").value;
-
-            fetch("/send_embed", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    channel_id: channelId,
-                    title: document.getElementById("title").value,
-                    description: document.getElementById("description").value,
-                    color: document.getElementById("color").value,  // Jei spalvos nėra, ši reikšmė bus tuščia
-                    image_url: document.getElementById("imageUrl").value
-                })
-            }).then(response => response.json()).then(data => alert(data.message));
+          const stats = document.getElementById("stats");
+          stats.innerHTML = `📊 Kanalų skaičius: <strong>${data.additional_info.total_channels}</strong>`;
         });
-    </script>
+    }
+
+    // Prisijungimo informacija
+    function checkAuth() {
+      fetch("/user")
+        .then(r => r.json())
+        .then(data => {
+          const auth = document.getElementById("authInfo");
+          if (data.logged_in) {
+            auth.innerHTML = `👋 Sveiki, <strong>${data.user.username}</strong>! <a href="/logout" class="button">Atsijungti</a>`;
+          } else {
+            auth.innerHTML = `<a href="/login" class="button">🔐 Prisijungti su Discord</a>`;
+          }
+        });
+    }
+
+    // Embed peržiūra
+    function previewEmbed() {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const color = document.getElementById("color").value;
+      const imageUrl = document.getElementById("imageUrl").value;
+
+      fetch("/preview_embed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description, color, image_url: imageUrl })
+      }).then(r => r.json()).then(data => {
+        document.getElementById("embedPreview").style.display = "block";
+        document.getElementById("embedTitle").innerText = "📌 " + data.embed.title;
+        document.getElementById("embedDescription").innerText = "📝 " + data.embed.description;
+        if (data.embed.image) {
+          document.getElementById("embedImage").innerHTML = `<img src="${data.embed.image.url}" alt="Embed Image">`;
+        } else {
+          document.getElementById("embedImage").innerText = "🖼️ Nėra paveikslėlio";
+        }
+      });
+    }
+
+    // Siųsti embed
+    document.getElementById("embedForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const channelId = document.getElementById("channelSelect").value;
+
+      fetch("/send_embed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channel_id: channelId,
+          title: document.getElementById("title").value,
+          description: document.getElementById("description").value,
+          color: document.getElementById("color").value,
+          image_url: document.getElementById("imageUrl").value
+        })
+      })
+        .then(r => r.json())
+        .then(data => alert(data.message));
+    });
+
+    // Inicijuoti
+    loadChannels();
+    checkAuth();
+  </script>
 </body>
 </html>
