@@ -10,39 +10,11 @@
             color: #ffffff;
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background-color: #2f3136;
             padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid #444;
         }
 
         h1 {
             color: #7289da;
-            margin: 0;
-        }
-
-        main {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .stat-box {
-            background-color: #2f3136;
-            padding: 20px;
-            border-radius: 12px;
-            width: 30%;
-            text-align: center;
         }
 
         .form-group {
@@ -55,8 +27,6 @@
             border-radius: 8px;
             border: none;
             margin-top: 5px;
-            background-color: #40444b;
-            color: #fff;
         }
 
         button {
@@ -84,10 +54,13 @@
             padding: 12px 24px;
             font-weight: bold;
             display: inline-block;
-            margin: 20px auto;
+            margin-bottom: 20px;
             border-radius: 8px;
             text-decoration: none;
-            text-align: center;
+        }
+
+        .login-button:hover {
+            background-color: #4752c4;
         }
 
         label {
@@ -95,101 +68,96 @@
             margin-bottom: 5px;
         }
 
-        #status {
+        .status-bar {
+            background-color: #2b2d31;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .status-green {
+            color: #57f287;
+        }
+
+        .sending-indicator {
             margin-top: 10px;
             font-style: italic;
+            color: #aaaaaa;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
-        <a class="login-button" href="/login">🔒 Prisijungti su Discord</a>
-    </header>
-    <main>
-        <div class="stats">
-            <div class="stat-box">
-                <div id="totalChannels">0</div>
-                <small>Kanalai</small>
-            </div>
-            <div class="stat-box">
-                <div id="memberCount">…</div>
-                <small>Narių skaičius</small>
-            </div>
-            <div class="stat-box">
-                <div id="lastStatus">…</div>
-                <small>Statusas</small>
-            </div>
+    <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
+
+    <div class="status-bar">
+        <span id="channelCount">🔄 Kraunama kanalų informacija...</span>
+        <span id="memberCount">👥 Kraunama narių informacija...</span>
+    </div>
+
+    <a class="login-button" href="/login">🔒 Prisijungti su Discord</a>
+
+    <form id="embedForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">Embed pavadinimas</label>
+            <input type="text" id="title" name="title" placeholder="Pavadinimas">
+        </div>
+        <div class="form-group">
+            <label for="description">Aprašymas</label>
+            <textarea id="description" name="description" placeholder="Aprašymas"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="imageUrl">Paveikslėlio URL</label>
+            <input type="text" id="imageUrl" name="image_url" placeholder="https://...">
+        </div>
+        <div class="form-group">
+            <label for="image">Arba įkelk paveikslėlį</label>
+            <input type="file" id="image" name="image_file" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label for="channelSelect">Pasirinkti kanalą</label>
+            <select id="channelSelect" name="channel_id" required>
+                <option value="">-- Pasirinkite kanalą --</option>
+            </select>
         </div>
 
-        <form id="embedForm" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="title">Embed pavadinimas</label>
-                <input type="text" id="title" name="title">
-            </div>
-            <div class="form-group">
-                <label for="description">Aprašymas</label>
-                <textarea id="description" name="description"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="imageUrl">Paveikslėlio URL</label>
-                <input type="text" id="imageUrl" name="image_url">
-            </div>
-            <div class="form-group">
-                <label for="image">Arba įkelk paveikslėlį</label>
-                <input type="file" id="image" name="image" accept="image/*">
-            </div>
-            <div class="form-group">
-                <label for="channelSelect">Pasirinkti kanalą</label>
-                <select id="channelSelect" name="channel_id" required>
-                    <option value="">-- Pasirinkite kanalą --</option>
-                </select>
-            </div>
+        <button type="submit">📩 Siųsti Embed</button>
+        <div class="sending-indicator" id="sendingIndicator" style="display:none;">⏳ Siunčiama žinutė...</div>
+    </form>
 
-            <button type="submit">📩 Siųsti Embed</button>
-            <div id="status"></div>
-        </form>
-
-        <div id="embedPreview" class="embed-preview" style="display:none;">
-            <h3>Peržiūra</h3>
-            <div id="embedTitle"></div>
-            <div id="embedDescription"></div>
-            <div id="embedImage"></div>
-        </div>
-    </main>
+    <div id="embedPreview" class="embed-preview" style="display:none;">
+        <h3>Peržiūra</h3>
+        <div id="embedTitle"></div>
+        <div id="embedDescription"></div>
+        <div id="embedImage"></div>
+    </div>
 
     <script>
-        const form = document.getElementById("embedForm");
-        const status = document.getElementById("status");
-        const preview = document.getElementById("embedPreview");
+        const embedForm = document.getElementById("embedForm");
         const embedTitle = document.getElementById("embedTitle");
         const embedDescription = document.getElementById("embedDescription");
         const embedImage = document.getElementById("embedImage");
 
-        form.addEventListener("input", () => {
-            const title = document.getElementById("title").value;
-            const description = document.getElementById("description").value;
-            const imageUrl = document.getElementById("imageUrl").value;
-            preview.style.display = "block";
-            embedTitle.textContent = title;
-            embedDescription.textContent = description;
-            embedImage.innerHTML = imageUrl ? `<img src="${imageUrl}" style="max-width:100%;border-radius:8px;">` : "";
-        });
-
-        form.addEventListener("submit", function(e) {
+        embedForm.addEventListener("submit", function(e) {
             e.preventDefault();
+            document.getElementById("sendingIndicator").style.display = "block";
+
             const formData = new FormData(this);
-            status.textContent = "⏳ Siunčiama...";
+
             fetch("/send_embed", {
                 method: "POST",
                 body: formData
             }).then(res => res.json())
               .then(data => {
-                  status.textContent = data.message;
-                  document.getElementById("lastStatus").textContent = new Date().toLocaleTimeString();
+                  alert(data.message);
+                  document.getElementById("sendingIndicator").style.display = "none";
               })
               .catch(err => {
-                  status.textContent = "❌ Klaida: " + err;
+                  alert("❌ Klaida: " + err);
+                  document.getElementById("sendingIndicator").style.display = "none";
               });
         });
 
@@ -198,13 +166,14 @@
                 .then(res => res.json())
                 .then(data => {
                     const select = document.getElementById("channelSelect");
-                    document.getElementById("totalChannels").textContent = data.additional_info.total_channels;
+                    const countEl = document.getElementById("channelCount");
                     data.channels.forEach(channel => {
                         let option = document.createElement("option");
                         option.value = channel.id;
                         option.textContent = `#${channel.name}`;
                         select.appendChild(option);
                     });
+                    countEl.textContent = `📢 Kanalų: ${data.channels.length}`;
                 });
         }
 
@@ -212,9 +181,26 @@
             fetch("/get_member_count")
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById("memberCount").textContent = data.member_count;
+                    const memberEl = document.getElementById("memberCount");
+                    memberEl.textContent = `👥 Nariai: ${data.member_count} (online: ${data.online_count})`;
                 });
         }
+
+        document.getElementById("title").addEventListener("input", () => {
+            embedTitle.textContent = document.getElementById("title").value;
+            document.getElementById("embedPreview").style.display = "block";
+        });
+
+        document.getElementById("description").addEventListener("input", () => {
+            embedDescription.textContent = document.getElementById("description").value;
+            document.getElementById("embedPreview").style.display = "block";
+        });
+
+        document.getElementById("imageUrl").addEventListener("input", () => {
+            const url = document.getElementById("imageUrl").value;
+            embedImage.innerHTML = url ? `<img src="${url}" alt="Embed Image" style="max-width:100%; border-radius: 8px; margin-top: 10px;" />` : "";
+            document.getElementById("embedPreview").style.display = "block";
+        });
 
         loadChannels();
         loadMemberCount();
