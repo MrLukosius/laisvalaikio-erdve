@@ -10,11 +10,39 @@
             color: #ffffff;
             font-family: Arial, sans-serif;
             margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2f3136;
             padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #444;
         }
 
         h1 {
             color: #7289da;
+            margin: 0;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background-color: #2f3136;
+            padding: 20px;
+            border-radius: 12px;
+            width: 30%;
+            text-align: center;
         }
 
         .form-group {
@@ -27,6 +55,8 @@
             border-radius: 8px;
             border: none;
             margin-top: 5px;
+            background-color: #40444b;
+            color: #fff;
         }
 
         button {
@@ -54,71 +84,113 @@
             padding: 12px 24px;
             font-weight: bold;
             display: inline-block;
-            margin-bottom: 20px;
+            margin: 20px auto;
             border-radius: 8px;
             text-decoration: none;
-        }
-
-        .login-button:hover {
-            background-color: #4752c4;
+            text-align: center;
         }
 
         label {
             display: block;
             margin-bottom: 5px;
         }
+
+        #status {
+            margin-top: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
-    <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
-
-    <a class="login-button" href="/login">🔒 Prisijungti su Discord</a>
-
-    <form id="embedForm" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="title">Embed pavadinimas</label>
-            <input type="text" id="title" name="title" placeholder="Pavadinimas">
-        </div>
-        <div class="form-group">
-            <label for="description">Aprašymas</label>
-            <textarea id="description" name="description" placeholder="Aprašymas"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="imageUrl">Paveikslėlio URL</label>
-            <input type="text" id="imageUrl" name="image_url" placeholder="https://...">
-        </div>
-        <div class="form-group">
-            <label for="image">Arba įkelk paveikslėlį</label>
-            <input type="file" id="image" name="image" accept="image/*">
-        </div>
-        <div class="form-group">
-            <label for="channelSelect">Pasirinkti kanalą</label>
-            <select id="channelSelect" name="channel_id" required>
-                <option value="">-- Pasirinkite kanalą --</option>
-            </select>
+    <header>
+        <h1>🎛️ Laisvalaikio Erdvės Bot'o Dashboard'as</h1>
+        <a class="login-button" href="/login">🔒 Prisijungti su Discord</a>
+    </header>
+    <main>
+        <div class="stats">
+            <div class="stat-box">
+                <div id="totalChannels">0</div>
+                <small>Kanalai</small>
+            </div>
+            <div class="stat-box">
+                <div id="memberCount">…</div>
+                <small>Narių skaičius</small>
+            </div>
+            <div class="stat-box">
+                <div id="lastStatus">…</div>
+                <small>Statusas</small>
+            </div>
         </div>
 
-        <button type="submit">📩 Siųsti Embed</button>
-    </form>
+        <form id="embedForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title">Embed pavadinimas</label>
+                <input type="text" id="title" name="title">
+            </div>
+            <div class="form-group">
+                <label for="description">Aprašymas</label>
+                <textarea id="description" name="description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="imageUrl">Paveikslėlio URL</label>
+                <input type="text" id="imageUrl" name="image_url">
+            </div>
+            <div class="form-group">
+                <label for="image">Arba įkelk paveikslėlį</label>
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="channelSelect">Pasirinkti kanalą</label>
+                <select id="channelSelect" name="channel_id" required>
+                    <option value="">-- Pasirinkite kanalą --</option>
+                </select>
+            </div>
 
-    <div id="embedPreview" class="embed-preview" style="display:none;">
-        <h3>Peržiūra</h3>
-        <div id="embedTitle"></div>
-        <div id="embedDescription"></div>
-        <div id="embedImage"></div>
-    </div>
+            <button type="submit">📩 Siųsti Embed</button>
+            <div id="status"></div>
+        </form>
+
+        <div id="embedPreview" class="embed-preview" style="display:none;">
+            <h3>Peržiūra</h3>
+            <div id="embedTitle"></div>
+            <div id="embedDescription"></div>
+            <div id="embedImage"></div>
+        </div>
+    </main>
 
     <script>
-        document.getElementById("embedForm").addEventListener("submit", function(e) {
+        const form = document.getElementById("embedForm");
+        const status = document.getElementById("status");
+        const preview = document.getElementById("embedPreview");
+        const embedTitle = document.getElementById("embedTitle");
+        const embedDescription = document.getElementById("embedDescription");
+        const embedImage = document.getElementById("embedImage");
+
+        form.addEventListener("input", () => {
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+            const imageUrl = document.getElementById("imageUrl").value;
+            preview.style.display = "block";
+            embedTitle.textContent = title;
+            embedDescription.textContent = description;
+            embedImage.innerHTML = imageUrl ? `<img src="${imageUrl}" style="max-width:100%;border-radius:8px;">` : "";
+        });
+
+        form.addEventListener("submit", function(e) {
             e.preventDefault();
             const formData = new FormData(this);
-
+            status.textContent = "⏳ Siunčiama...";
             fetch("/send_embed", {
                 method: "POST",
                 body: formData
             }).then(res => res.json())
-              .then(data => alert(data.message))
-              .catch(err => alert("❌ Klaida: " + err));
+              .then(data => {
+                  status.textContent = data.message;
+                  document.getElementById("lastStatus").textContent = new Date().toLocaleTimeString();
+              })
+              .catch(err => {
+                  status.textContent = "❌ Klaida: " + err;
+              });
         });
 
         function loadChannels() {
@@ -126,6 +198,7 @@
                 .then(res => res.json())
                 .then(data => {
                     const select = document.getElementById("channelSelect");
+                    document.getElementById("totalChannels").textContent = data.additional_info.total_channels;
                     data.channels.forEach(channel => {
                         let option = document.createElement("option");
                         option.value = channel.id;
@@ -135,7 +208,16 @@
                 });
         }
 
+        function loadMemberCount() {
+            fetch("/get_member_count")
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("memberCount").textContent = data.member_count;
+                });
+        }
+
         loadChannels();
+        loadMemberCount();
     </script>
 </body>
 </html>
